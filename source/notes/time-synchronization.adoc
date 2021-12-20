@@ -1,0 +1,64 @@
+= Time Synchronization
+:showtitle:
+:toc: preamble
+
+A collection of notes and links from looking at projects and papers on time synchronization.
+
+== NTP
+
+The API for fetching NTP's state is https://manpage.me/?q=ntp_adjtime[ntp_adjtime(2)].  Significantly shortened:
+
+[source,man]
+----
+SYNOPSIS
+       #include <sys/timex.h>
+
+       int ntp_adjtime(struct timex *buf);
+
+DESCRIPTION
+           struct timex {
+               // ...
+               long maxerror;   /* Maximum error (microseconds) */
+               struct timeval time;
+                                /* Current time (read-only, except for
+                                   ADJ_SETOFFSET); upon return, time.tv_usec
+                                   contains nanoseconds, if STA_NANO status
+                                   flag is set, otherwise microseconds */
+               // ...
+           };
+----
+
+
+=== Industrial Wisdom
+
+==== https://github.com/cloudera/kudu/commit/1c3cbb1c7d27bd659719a45c5904f1c06df65e45[[Kudu]] Wait for NTP synchronization on startup before checking the time 
+Time system time can experience a large jump (forwards or backwards) when a system synchronizes with NTP for the first time.  It is wise to wait for that synchronization to occur first before checking the system time.
+
+Specifically, chrony will never step the system clock after the initial synchronization, so time will always be monotonic thereafter (as long as chrony remains in control of the system clock).
+
+==== https://github.com/apache/kudu/blob/1d3cb5cba6fa09d646af3e93ce92632b129cab27/src/kudu/clock/builtin_ntp.cc#L913[[Kudu]] Call `sched_yield()` before checking and sending the time
+
+Any unpredictable delay between fetching the current time and sending it across the network will increase the error on clock synchronization.  One of the potential causes of unpredictable delay is preemption. Invoking `sched_yield()` before fetching and sending the time will make it highly unlikely that the time quantum is exceeded between checking and sending the time.
+
+==== https://github.com/apache/kudu/commit/53533bbc88183710329285789db5572e173a9abb[[Kudu]] Detect cloud type, and configure NTP to cloud's NTP provider
+
+A large number of users are running on the cloud, and a number of cloud providers offer highly accurate NTP endpoints.  Therefore, it's a nice addition to auto-detect the fact that the program is running on a cloud provider, and automatically configure NTP to point at the special highly-accurate NTP endpoint.
+
+==== https://github.com/cloudera/kudu/commit/10f6164b1217e0299bcfedc061d2c57581c389bd[[Kudu]] Always re-check STA_NANO, as it can change at runtime.
+
+NTP will either offer your time in milliseconds or nanoseconds.  Some NTP implementations will toggle that choice at runtime, so your code must tolerate transitions between the two. 
+
+==== https://github.com/cloudera/kudu/commit/7f5104586fa381347c582260df539b8cbb02f08b[[Kudu]] Tolerate transient failures in `ntp_adjtime`
+
+It's possible that ntp_adjtime will fail for a brief window as the clock temporarily loses synchronization.  During this time, you can continue to advance the clock and `maxerror` manually, and time out after a short window. 
+
+=== Open Questions
+
+==== `SCM_DROP_IF_LATE`
+
+When pulling the current time and sending it across the network, calling `sched_yield()` makes a decent attempt at not context switching away between the first and second parts.  However, calling `send()` on a packet, and it actually being sent, are two different things.   `sendmsg()` accepts a flag `SCM_DROP_IF_LATE`, which adds a deadline when enqueing a packet into the network stack.  If it can't be sent before the deadline, then it will be dropped.  This seems like it would help bound how late a packet could be sent out after the current system time was checked.
+
+I don't see anyone using it for this case.  There's very few uses of it at all, only https://github.com/search?q=SCM_DROP_IF_LATE&type=code[10 hits on github code search].  Historically this has correlated with kernel features that are either partially implemented or have significant limitations.
+
+== PTP
+
