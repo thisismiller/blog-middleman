@@ -9,15 +9,7 @@ require 'asciidoctor-diagram'
 activate :asciidoc, safe: :unsafe, attributes: ['source-highlighter=coderay']
 set :skip_build_clean, proc {|f| f.start_with? 'build/images/'}
 
-# Layouts
-# https://middlemanapp.com/basics/layouts/
-
-# Per-page layout changes
-page '/*.xml', layout: false
-page '/*.json', layout: false
-page '/*.txt', layout: false
-
-class MyFeature < Middleman::Extension
+class ImageDirPerAsciidoc < Middleman::Extension
   def initialize(app, options_hash={}, &block)
     super
   end
@@ -25,10 +17,8 @@ class MyFeature < Middleman::Extension
   def manipulate_resource_list(resources)
     resources.each do |resource|
       if resource.source_file.end_with? '.adoc'
-        #logger.debug @app.config.to_s
         resource.options[:renderer_options][:attributes]['imagesdir'] = ::File.join(@app.config[:asciidoc][:attributes]['imagesdir'].chomp('@'), resource.page_id + "@")
         resource.options[:renderer_options][:attributes]['imagesoutdir'] = ::File.join(@app.config[:asciidoc][:attributes]['site-destination'], @app.config[:images_dir], resource.page_id + "@")
-        #logger.debug resource.options.to_s
       end
     end
 
@@ -36,8 +26,16 @@ class MyFeature < Middleman::Extension
   end
 end
 
-::Middleman::Extensions.register(:imagedir_per_asciidoc, MyFeature)
+::Middleman::Extensions.register(:imagedir_per_asciidoc, ImageDirPerAsciidoc)
 activate :imagedir_per_asciidoc
+
+# Layouts
+# https://middlemanapp.com/basics/layouts/
+
+# Per-page layout changes
+page '/*.xml', layout: false
+page '/*.json', layout: false
+page '/*.txt', layout: false
 
 # With alternative layout
 # page '/path/to/file.html', layout: 'other_layout'
