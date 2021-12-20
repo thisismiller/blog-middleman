@@ -18,12 +18,13 @@ SYNOPSIS
 DESCRIPTION
            struct timex {
                // ...
-               long maxerror;   /* Maximum error (microseconds) */
+               /* Maximum error (microseconds) */
+               long maxerror;
+               /* Current time (read-only, except for
+                  ADJ_SETOFFSET); upon return, time.tv_usec
+                  contains nanoseconds, if STA_NANO status
+                  flag is set, otherwise microseconds */
                struct timeval time;
-                                /* Current time (read-only, except for
-                                   ADJ_SETOFFSET); upon return, time.tv_usec
-                                   contains nanoseconds, if STA_NANO status
-                                   flag is set, otherwise microseconds */
                // ...
            };
 ----
