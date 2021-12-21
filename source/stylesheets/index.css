@@ -1,0 +1,45 @@
+@charset "UTF-8";
+
+body {
+  display: grid;
+  grid-template-columns: 1fr 1fr 10px 700px 10px 1fr 1fr;
+  font-family: 'Open Sans', sans-serif;
+}
+
+body > * {
+  grid-column: 4;
+}
+
+h1 {
+  text-align: center;
+}
+
+p, ol {
+  margin: 0em 0em;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  orphans: 3;
+  font-size: 18px;
+  line-height: 1.5em;
+}
+
+.summary {
+  padding: 0 1em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 18px;
+  line-height: 1.5em;
+  text-align: left;
+  background-color: #EEEEEE;
+  border-color: #AAAAAA;
+}
+
+code {
+  font-family: 'Inconsolata', monospace;
+}
+
+pre {
+  margin-left: 4em;
+}
