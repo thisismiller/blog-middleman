@@ -6,7 +6,7 @@ activate :autoprefixer do |prefix|
 end
 
 require 'asciidoctor-diagram'
-activate :asciidoc, safe: :unsafe, attributes: ['source-highlighter=coderay']
+activate :asciidoc, safe: :unsafe, attributes: ['source-highlighter=coderay', 'toc-title=']
 set :skip_build_clean, proc {|f| f.start_with? 'build/images/'}
 
 class ImageDirPerAsciidoc < Middleman::Extension
