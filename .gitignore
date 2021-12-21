@@ -5,3 +5,4 @@
 .sass-cache
 build/
 .*.swp
+node_modules/
