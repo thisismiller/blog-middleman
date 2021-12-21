@@ -43,8 +43,13 @@ body .vegalite {
 
 code {
   font-family: 'Inconsolata', monospace;
+  font-size: 14px;
 }
 
 pre {
   margin-left: 4em;
+}
+
+pre.CodeRay {
+  margin-left: 0px;
 }

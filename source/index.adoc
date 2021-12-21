@@ -1,6 +1,9 @@
 = Index
 
+== Testing Distributed Systems with Deterministic Simulation
+
+ - link:simulation/buggify.html[BUGGIFY]
+
 == Notes
 
  - link:notes/time-synchronization.html[Time Synchronization]
-
