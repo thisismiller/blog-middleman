@@ -51,7 +51,7 @@ jobs:
         install-peerdeps -g vega-lite
 
     - name: Build Middleman
-      run: bundle exec middleman build --environment=ghpages
+      run: bundle exec middleman build --environment=transactionalblog
 
     - name: Push to Github Pages
       uses: peaceiris/actions-gh-pages@v3

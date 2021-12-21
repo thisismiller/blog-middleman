@@ -70,6 +70,11 @@ configure :ghpages do
   activate :minify_javascript
 end
 
+configure :transactionalblog do
+  activate :minify_css
+  activate :minify_javascript
+end
+
 # configure :build do
 #   activate :minify_css
 #   activate :minify_javascript
