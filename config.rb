@@ -71,6 +71,7 @@ configure :ghpages do
 end
 
 configure :transactionalblog do
+  set :http_prefix, "/"
   activate :minify_css
   activate :minify_javascript
 end
