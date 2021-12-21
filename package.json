@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@mermaid-js/mermaid-cli": "^8.13.5",
+    "bytefield-svg": "^1.6.0",
+    "install-peerdeps": "^3.0.3",
+    "vega-cli": "^5.21.0",
+    "vega-lite": "^5.2.0"
+  }
+}

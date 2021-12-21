@@ -33,8 +33,6 @@ jobs:
 
     - name: Install Graphviz
       run: sudo apt-get install -qq graphviz
-    - name: Install Bytefield-SVG
-      run: npm install -g bytefield-svg
     - name: Install Pikchr
       run: |
         wget https://pikchr.org/home/tarball/trunk/pikchr.tgz
@@ -42,13 +40,6 @@ jobs:
         cd pikchr
         make
         echo "$(pwd)" >> $GITHUB_PATH
-    - name: Install Mermaid
-      run: npm install -g @mermaid-js/mermaid-cli
-    - name: Install Vega
-      run: |
-        npm install -g vega-cli
-        npm install -g install-peerdeps
-        install-peerdeps -g vega-lite
 
     - name: Build Middleman
       run: bundle exec middleman build --verbose --environment=transactionalblog
