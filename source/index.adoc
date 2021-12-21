@@ -1,4 +1,5 @@
 = Index
+:page-style: index
 
 == Testing Distributed Systems with Deterministic Simulation
 

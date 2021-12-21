@@ -1,4 +1,5 @@
 = Time Synchronization
+:page-style: post
 :showtitle:
 :toc: preamble
 
