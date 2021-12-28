@@ -1,0 +1,6 @@
+<%= content %>
+<% if (document.attr? 'toc-placement', 'preamble') && document.sections? && (document.attr? 'toc') %>
+  <div class="toc">
+  <%= document.converter.convert document, 'outline' %>
+  </div>
+<% end %>
