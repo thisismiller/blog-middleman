@@ -1,0 +1,17 @@
+$text-font: 'Open Sans', sans-serif
+$code-font: 'Inconsolata', monospace
+
+body
+  display: grid
+  grid-template-columns: 1fr 1fr 10px 700px 10px 1fr 1fr
+  font-family: $text-font
+
+  > *
+    grid-column: 4
+
+h1
+  text-align: center
+
+code
+  font-family: $code-font
+  font-size: 90%
