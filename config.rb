@@ -29,6 +29,11 @@ end
 ::Middleman::Extensions.register(:imagedir_per_asciidoc, ImageDirPerAsciidoc)
 activate :imagedir_per_asciidoc
 
+activate :blog do |blog|
+  blog.prefix = "blog"
+  blog.permalink = "blog/{year}/{title}.html"
+end
+
 # Layouts
 # https://middlemanapp.com/basics/layouts/
 
