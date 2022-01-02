@@ -12,6 +12,7 @@
     <%= javascript_include_tag "site" %>
   </head>
   <body>
+    <h1><%= current_page.data.title %></h1>
     <%= yield %>
     <% if environment == :transactionalblog %>
     <script data-goatcounter="https://transactionalblog.goatcounter.com/count"

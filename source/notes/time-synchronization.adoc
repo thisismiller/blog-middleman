@@ -1,11 +1,14 @@
 = Time Synchronization
 :page-style: new-post
-:showtitle:
 :toc: preamble
 
 A collection of notes and links from looking at projects and papers on time synchronization.
 
 == NTP
+
+=== Overview
+
+=== Usage
 
 The API for fetching NTP's state is https://manpage.me/?q=ntp_adjtime[ntp_adjtime(2)].  Significantly shortened:
 
@@ -30,29 +33,26 @@ DESCRIPTION
            };
 ----
 
-
-=== Industrial Wisdom
-
-==== https://github.com/cloudera/kudu/commit/1c3cbb1c7d27bd659719a45c5904f1c06df65e45[[Kudu]] Wait for NTP synchronization on startup before checking the time 
+==== https://github.com/cloudera/kudu/commit/1c3cbb1c7d27bd659719a45c5904f1c06df65e45[[Kudu\]] Wait for NTP synchronization on startup before checking the time
 Time system time can experience a large jump (forwards or backwards) when a system synchronizes with NTP for the first time.  It is wise to wait for that synchronization to occur first before checking the system time.
 
 Specifically, chrony will never step the system clock after the initial synchronization, so time will always be monotonic thereafter (as long as chrony remains in control of the system clock).
 
-==== https://github.com/apache/kudu/blob/1d3cb5cba6fa09d646af3e93ce92632b129cab27/src/kudu/clock/builtin_ntp.cc#L913[[Kudu]] Call `sched_yield()` before checking and sending the time
+==== https://github.com/apache/kudu/blob/1d3cb5cba6fa09d646af3e93ce92632b129cab27/src/kudu/clock/builtin_ntp.cc#L913[[Kudu\]] Call `sched_yield()` before checking and sending the time
 
 Any unpredictable delay between fetching the current time and sending it across the network will increase the error on clock synchronization.  One of the potential causes of unpredictable delay is preemption. Invoking `sched_yield()` before fetching and sending the time will make it highly unlikely that the time quantum is exceeded between checking and sending the time.
 
-==== https://github.com/apache/kudu/commit/53533bbc88183710329285789db5572e173a9abb[[Kudu]] Detect cloud type, and configure NTP to cloud's NTP provider
+==== https://github.com/apache/kudu/commit/53533bbc88183710329285789db5572e173a9abb[[Kudu\]] Detect cloud type, and configure NTP to cloud's NTP provider
 
 A large number of users are running on the cloud, and a number of cloud providers offer highly accurate NTP endpoints.  Therefore, it's a nice addition to auto-detect the fact that the program is running on a cloud provider, and automatically configure NTP to point at the special highly-accurate NTP endpoint.
 
-==== https://github.com/cloudera/kudu/commit/10f6164b1217e0299bcfedc061d2c57581c389bd[[Kudu]] Always re-check STA_NANO, as it can change at runtime.
+==== https://github.com/cloudera/kudu/commit/10f6164b1217e0299bcfedc061d2c57581c389bd[[Kudu\]] Always re-check STA_NANO, as it can change at runtime.
 
-NTP will either offer your time in milliseconds or nanoseconds.  Some NTP implementations will toggle that choice at runtime, so your code must tolerate transitions between the two. 
+NTP will either offer your time in milliseconds or nanoseconds.  Some NTP implementations will toggle that choice at runtime, so your code must tolerate transitions between the two.
 
-==== https://github.com/cloudera/kudu/commit/7f5104586fa381347c582260df539b8cbb02f08b[[Kudu]] Tolerate transient failures in `ntp_adjtime`
+==== https://github.com/cloudera/kudu/commit/7f5104586fa381347c582260df539b8cbb02f08b[[Kudu\]] Tolerate transient failures in `ntp_adjtime`
 
-It's possible that ntp_adjtime will fail for a brief window as the clock temporarily loses synchronization.  During this time, you can continue to advance the clock and `maxerror` manually, and time out after a short window. 
+It's possible that ntp_adjtime will fail for a brief window as the clock temporarily loses synchronization.  During this time, you can continue to advance the clock and `maxerror` manually, and time out after a short window.
 
 === Open Questions
 
@@ -63,4 +63,20 @@ When pulling the current time and sending it across the network, calling `sched_
 I don't see anyone using it for this case.  There's very few uses of it at all, only https://github.com/search?q=SCM_DROP_IF_LATE&type=code[10 hits on github code search].  Historically this has correlated with kernel features that are either partially implemented or have significant limitations.
 
 == PTP
+
+
+== Huygens
+
+<<huygens>> is an NTP-like approach, offering PTP-like time bounds.
+
+[bibliography]
+== References
+
+* [[[spanner]]]: J. C. Corbett et al., “Spanner: Google's Globally-Distributed Database,” in 10th USENIX Symposium on Operating Systems Design and Implementation (OSDI 12), Hollywood, CA, Oct. 2012, pp. 261-264. https://www.usenix.org/conference/osdi12/technical-sessions/presentation/corbett[[Online\]].
+
+* [[[sundial]]]: Y. Li et al., "Sundial: Fault-tolerant Clock Synchronization for Datacenters," in 14th USENIX Symposium on Operating Systems Design and Implementation (OSDI 20), 2020, pp. 1171-1186. https://www.usenix.org/conference/osdi20/presentation/li-yuliang[[Online\]].
+
+* [[[ptp-wifi]]]: P. Chen and Z. Yang, "Understanding Precision Time Protocol in Today's Wi-Fi Networks: A Measurement Study," in 2021 USENIX Annual Technical Conference (USENIX ATC 21), Jul. 2021, pp. 597-610. https://www.usenix.org/conference/atc21/presentation/chen[[Online\]].
+
+* [[[huygens]]]: Y. Geng et al., "Exploiting a Natural Network Effect for Scalable, Fine-grained Clock Synchronization," in 15th USENIX Symposium on Networked Systems Design and Implementation (NSDI 18), Renton, WA, Apr. 2018, pp. 81-94. https://www.usenix.org/conference/nsdi18/presentation/geng[[Online\]].
 
