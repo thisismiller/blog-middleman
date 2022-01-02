@@ -31,7 +31,8 @@ activate :imagedir_per_asciidoc
 
 activate :blog do |blog|
   blog.prefix = "blog"
-  blog.permalink = "blog/{year}/{title}.html"
+  blog.sources = "{year}-{title}.html"
+  blog.permalink = "{year}/{title}.html"
 end
 
 # Layouts
