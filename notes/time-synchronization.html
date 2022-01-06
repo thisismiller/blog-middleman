@@ -7,37 +7,38 @@
           content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Use the title from a page's frontmatter if it has one -->
     <title>Time Synchronization</title>
-    <link href="/stylesheets/post.css" rel="stylesheet" />
+    <link href="/stylesheets/new-post.css" rel="stylesheet" />
     <link href="/stylesheets/coderay.css" rel="stylesheet" />
     <script src="/javascripts/site.js"></script>
   </head>
   <body>
     <h1>Time Synchronization</h1>
-<div id="preamble">
-<div class="sectionbody">
-<div class="paragraph">
-<p>A collection of notes and links from looking at projects and papers on time synchronization.</p>
-</div>
-</div>
-<div id="toc" class="toc">
-<div id="toctitle">Table of Contents</div>
-<ul class="sectlevel1">
+    <p>A collection of notes and links from looking at projects and papers on time synchronization.</p>
+
+  <div class="toc">
+  <ul class="sectlevel1">
 <li><a href="#_ntp">NTP</a>
 <ul class="sectlevel2">
-<li><a href="#_industrial_wisdom">Industrial Wisdom</a></li>
+<li><a href="#_overview">Overview</a></li>
+<li><a href="#_usage">Usage</a></li>
 <li><a href="#_open_questions">Open Questions</a></li>
 </ul>
 </li>
 <li><a href="#_ptp">PTP</a></li>
+<li><a href="#_huygens">Huygens</a></li>
+<li><a href="#_references">References</a></li>
 </ul>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_ntp">NTP</h2>
-<div class="sectionbody">
-<div class="paragraph">
+  </div>
+<h2 id="_ntp" > 
+NTP
+</h2> 
+<h3 id="_overview" > 
+Overview
+</h3>
+<h3 id="_usage" > 
+Usage
+</h3> 
 <p>The API for fetching NTP&#8217;s state is <a href="https://manpage.me/?q=ntp_adjtime">ntp_adjtime(2)</a>.  Significantly shortened:</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="man">SYNOPSIS
@@ -59,61 +60,60 @@ DESCRIPTION
            };</code></pre>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_industrial_wisdom">Industrial Wisdom</h3>
-<div class="sect3">
-<h4 id="_kudu_wait_for_ntp_synchronization_on_startup_before_checking_the_time"><a href="https://github.com/cloudera/kudu/commit/1c3cbb1c7d27bd659719a45c5904f1c06df65e45">[Kudu</a>] Wait for NTP synchronization on startup before checking the time</h4>
-<div class="paragraph">
+<h4 id="_kudu_wait_for_ntp_synchronization_on_startup_before_checking_the_time" > 
+<a href="https://github.com/cloudera/kudu/commit/1c3cbb1c7d27bd659719a45c5904f1c06df65e45">[Kudu]</a> Wait for NTP synchronization on startup before checking the time
+</h4> 
 <p>Time system time can experience a large jump (forwards or backwards) when a system synchronizes with NTP for the first time.  It is wise to wait for that synchronization to occur first before checking the system time.</p>
-</div>
-<div class="paragraph">
 <p>Specifically, chrony will never step the system clock after the initial synchronization, so time will always be monotonic thereafter (as long as chrony remains in control of the system clock).</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_kudu_call_sched_yield_before_checking_and_sending_the_time"><a href="https://github.com/apache/kudu/blob/1d3cb5cba6fa09d646af3e93ce92632b129cab27/src/kudu/clock/builtin_ntp.cc#L913">[Kudu</a>] Call <code>sched_yield()</code> before checking and sending the time</h4>
-<div class="paragraph">
+<h4 id="_kudu_call_sched_yield_before_checking_and_sending_the_time" > 
+<a href="https://github.com/apache/kudu/blob/1d3cb5cba6fa09d646af3e93ce92632b129cab27/src/kudu/clock/builtin_ntp.cc#L913">[Kudu]</a> Call <code>sched_yield()</code> before checking and sending the time
+</h4> 
 <p>Any unpredictable delay between fetching the current time and sending it across the network will increase the error on clock synchronization.  One of the potential causes of unpredictable delay is preemption. Invoking <code>sched_yield()</code> before fetching and sending the time will make it highly unlikely that the time quantum is exceeded between checking and sending the time.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_kudu_detect_cloud_type_and_configure_ntp_to_clouds_ntp_provider"><a href="https://github.com/apache/kudu/commit/53533bbc88183710329285789db5572e173a9abb">[Kudu</a>] Detect cloud type, and configure NTP to cloud&#8217;s NTP provider</h4>
-<div class="paragraph">
+<h4 id="_kudu_detect_cloud_type_and_configure_ntp_to_clouds_ntp_provider" > 
+<a href="https://github.com/apache/kudu/commit/53533bbc88183710329285789db5572e173a9abb">[Kudu]</a> Detect cloud type, and configure NTP to cloud&#8217;s NTP provider
+</h4> 
 <p>A large number of users are running on the cloud, and a number of cloud providers offer highly accurate NTP endpoints.  Therefore, it&#8217;s a nice addition to auto-detect the fact that the program is running on a cloud provider, and automatically configure NTP to point at the special highly-accurate NTP endpoint.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_kudu_always_re_check_sta_nano_as_it_can_change_at_runtime"><a href="https://github.com/cloudera/kudu/commit/10f6164b1217e0299bcfedc061d2c57581c389bd">[Kudu</a>] Always re-check STA_NANO, as it can change at runtime.</h4>
-<div class="paragraph">
+<h4 id="_kudu_always_re_check_sta_nano_as_it_can_change_at_runtime" > 
+<a href="https://github.com/cloudera/kudu/commit/10f6164b1217e0299bcfedc061d2c57581c389bd">[Kudu]</a> Always re-check STA_NANO, as it can change at runtime.
+</h4> 
 <p>NTP will either offer your time in milliseconds or nanoseconds.  Some NTP implementations will toggle that choice at runtime, so your code must tolerate transitions between the two.</p>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_kudu_tolerate_transient_failures_in_ntp_adjtime"><a href="https://github.com/cloudera/kudu/commit/7f5104586fa381347c582260df539b8cbb02f08b">[Kudu</a>] Tolerate transient failures in <code>ntp_adjtime</code></h4>
-<div class="paragraph">
+<h4 id="_kudu_tolerate_transient_failures_in_ntp_adjtime" > 
+<a href="https://github.com/cloudera/kudu/commit/7f5104586fa381347c582260df539b8cbb02f08b">[Kudu]</a> Tolerate transient failures in <code>ntp_adjtime</code>
+</h4> 
 <p>It&#8217;s possible that ntp_adjtime will fail for a brief window as the clock temporarily loses synchronization.  During this time, you can continue to advance the clock and <code>maxerror</code> manually, and time out after a short window.</p>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_open_questions">Open Questions</h3>
-<div class="sect3">
-<h4 id="_scm_drop_if_late"><code>SCM_DROP_IF_LATE</code></h4>
-<div class="paragraph">
+<h3 id="_open_questions" > 
+Open Questions
+</h3> 
+<h4 id="_scm_drop_if_late" > 
+<code>SCM_DROP_IF_LATE</code>
+</h4> 
 <p>When pulling the current time and sending it across the network, calling <code>sched_yield()</code> makes a decent attempt at not context switching away between the first and second parts.  However, calling <code>send()</code> on a packet, and it actually being sent, are two different things.   <code>sendmsg()</code> accepts a flag <code>SCM_DROP_IF_LATE</code>, which adds a deadline when enqueing a packet into the network stack.  If it can&#8217;t be sent before the deadline, then it will be dropped.  This seems like it would help bound how late a packet could be sent out after the current system time was checked.</p>
-</div>
-<div class="paragraph">
 <p>I don&#8217;t see anyone using it for this case.  There&#8217;s very few uses of it at all, only <a href="https://github.com/search?q=SCM_DROP_IF_LATE&amp;type=code">10 hits on github code search</a>.  Historically this has correlated with kernel features that are either partially implemented or have significant limitations.</p>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_ptp">PTP</h2>
-<div class="sectionbody">
-
-</div>
+<h2 id="_ptp" > 
+PTP
+</h2>
+<h2 id="_huygens" > 
+Huygens
+</h2> 
+<p><a href="#huygens">[huygens]</a> is an NTP-like approach, offering PTP-like time bounds.</p>
+<h2 id="_references" > 
+References
+</h2> 
+<div class="ulist bibliography">
+<ul class="bibliography">
+<li>
+<p><a id="spanner"></a>[spanner]: J. C. Corbett et al., “Spanner: Google&#8217;s Globally-Distributed Database,” in 10th USENIX Symposium on Operating Systems Design and Implementation (OSDI 12), Hollywood, CA, Oct. 2012, pp. 261-264. <a href="https://www.usenix.org/conference/osdi12/technical-sessions/presentation/corbett">[Online]</a>.</p>
+</li>
+<li>
+<p><a id="sundial"></a>[sundial]: Y. Li et al., "Sundial: Fault-tolerant Clock Synchronization for Datacenters," in 14th USENIX Symposium on Operating Systems Design and Implementation (OSDI 20), 2020, pp. 1171-1186. <a href="https://www.usenix.org/conference/osdi20/presentation/li-yuliang">[Online]</a>.</p>
+</li>
+<li>
+<p><a id="ptp-wifi"></a>[ptp-wifi]: P. Chen and Z. Yang, "Understanding Precision Time Protocol in Today&#8217;s Wi-Fi Networks: A Measurement Study," in 2021 USENIX Annual Technical Conference (USENIX ATC 21), Jul. 2021, pp. 597-610. <a href="https://www.usenix.org/conference/atc21/presentation/chen">[Online]</a>.</p>
+</li>
+<li>
+<p><a id="huygens"></a>[huygens]: Y. Geng et al., "Exploiting a Natural Network Effect for Scalable, Fine-grained Clock Synchronization," in 15th USENIX Symposium on Networked Systems Design and Implementation (NSDI 18), Renton, WA, Apr. 2018, pp. 81-94. <a href="https://www.usenix.org/conference/nsdi18/presentation/geng">[Online]</a>.</p>
+</li>
+</ul>
 </div>
     <script data-goatcounter="https://transactionalblog.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>

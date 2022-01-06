@@ -13,27 +13,16 @@
   </head>
   <body>
     <h1>BUGGIFY</h1>
-<div class="sect1">
-<h2 id="_behavior">Behavior</h2>
-<div class="sectionbody">
-<div class="paragraph">
+    <h1>BUGGIFY</h1>
+<h2 id="_behavior" > 
+Behavior
+</h2> 
 <p>FoundationDB&#8217;s correctness is validated with a deterministic simulation framework that productively fuzzes faults against a specification of the system&#8217;s behavior.</p>
-</div>
-<div class="paragraph">
 <p>When I&#8217;ve seen discussions of FDB&#8217;s testing in the wild, the focus has always been on the first part: the deterministic simulation framework.  This is likely due to Will Wilson&#8217;s fantastic talk on the subject, <a href="https://youtu.be/4fFDFbi3toc">"Testing Distributed Systems with Deterministic Simulation"</a>, focusing mainly on that first part.  An important beginning, but not the whole story.</p>
-</div>
-<div class="paragraph">
 <p>A deterministic simulation framework with random fault injection provides a testing framework that <em>can</em> find bugs.  However, the question is how quickly?  If validating the correctness of a network protocol or storage engine, then network or disk fault injection alone would be sufficient to give a high degree of confidence in correctness.  The types of dangerous conditions that the code must correctly handle, such as network instability or disk corruption, exactly match what the simulator directly produces.</p>
-</div>
-<div class="paragraph">
 <p>When building full, higher level, distributed systems, there&#8217;s no longer an exact match between what the simulator can easily produce and the dangerous situations that discover bugs.  What&#8217;s the chance of random packet loss causing a minimal quorum to be used in two consecutive Raft leader elections?  What&#8217;s the chance that random connection drops causes a duplicate request to be sent a minute later?  It&#8217;s still <em>possible</em> for these bugs to be discovered, however, it&#8217;d take a tremendous number of simulation runs to stumble upon one of these higher-level dangerous situations.  This poor ratio of testing time to coverage, We&#8217;ve lost the "productively" in our original description of simulation testing.  What is needed is a way to enable the simulator to directly produce failures in higher level components or APIs.</p>
-</div>
-<div class="paragraph">
 <p>How FoundationDB does this is with the <code>BUGGIFY</code> macro.  <code>BUGGIFY</code> exists to bias the simulator towards doing dangerous, bug-finding things.  It is the main tool that differentiates FDB&#8217;s simulation testing from other black box solutions.  Instead of writing FoundationDB and then trying to validated it against a separate blackbox testing solution afterwards, FoundationDB was written to explicitly cooperate with the simulator by instrumenting its code with descriptions of how to cause failures in each component of the system.</p>
-</div>
-<div class="paragraph">
 <p><code>BUGGIFY</code> has the following rules:</p>
-</div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
@@ -47,22 +36,15 @@
 </li>
 </ol>
 </div>
-<div class="paragraph">
 <p>In FoundationDB all test code and <code>BUGGIFY</code> fault injection code is compiled into the exact binary that is published as the official binary and run in production.  (1) promising that <code>BUGGIFY</code> will only ever evaluate to true within simulation is what provides us with the sense of safety and confidence to liberally sprinkle fault injection code inline with our critical production code.</p>
-</div>
-<div class="paragraph">
 <p>(2) and (3) are both different ways of requesting "do bad things, but not too many of them". Viewing each <code>BUGGIFY</code> usage as a different potential type of fault, simulation selects a random subset of the potential faults to inject for a given run.  For the enabled <code>BUGGIFY</code> lines, we don&#8217;t wish to force an error handling case in <em>every</em> run, as that might prevent the system from making forward progress.  25% was an arbitrarily chosen default for "frequent but not too frequent".</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_usage">Usage</h2>
-<div class="sectionbody">
-<div class="sect2">
-<h3 id="_performing_minimal_work">Performing Minimal Work</h3>
-<div class="paragraph">
+<h2 id="_usage" > 
+Usage
+</h2> 
+<h3 id="_performing_minimal_work" > 
+Performing Minimal Work
+</h3> 
 <p>Situations where work is optional, or done asynchronously after a reply has already been sent, are great opportunities to <code>BUGGIFY</code> in not doing the extra work.</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="cpp"><span class="comment">// Ask all coordinators if the worker is considered as a leader (leader nominee)</span>
@@ -77,18 +59,12 @@
 }</code></pre>
 </div>
 </div>
-<div class="paragraph">
 <p>Which causes leader information to be pulled from a minimal Paxos quorum rather than sending requests to all coordinators.</p>
-</div>
-<div class="paragraph">
 <p>(The minimal quorum needs to be a minimal quorum of alive nodes, such that the system should be able to make forward progress.  When simulation tests are configured to kill processes, this minimal quorum logic needs to restrict itself to only the nodes simulation thinks should be alive.)</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_forcing_error_handling">Forcing Error Handling</h3>
-<div class="paragraph">
+<h3 id="_forcing_error_handling" > 
+Forcing Error Handling
+</h3> 
 <p>Some conditions that detect exceptional cases have <code>|| BUGGIFY</code> added to the end of them.</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="cpp"><span class="keyword">if</span>(self-&gt;cursor-&gt;popped() != <span class="integer">0</span> ||
@@ -102,18 +78,12 @@
 }</code></pre>
 </div>
 </div>
-<div class="paragraph">
 <p>Which detects the case where part way through reading data, we&#8217;re told that the data we want has been removed, and we need to restart reading at a higher version.  The situation that produces this error is exceptionally rare, so to make sure that the code is well tested, we occasionally pretend that a successful read actually indicated that a restart was necessary.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_emphasizing_concurrency">Emphasizing Concurrency</h3>
-<div class="paragraph">
+<h3 id="_emphasizing_concurrency" > 
+Emphasizing Concurrency
+</h3> 
 <p>Injecting or lengthening sleeps, <code>if (BUGGIFY) wait(delay(5));</code> or <code>wait(delay( BUGGIFY ? 1, 0.001 ));</code>, are reasonably common patterns in complex, concurrent code.  <code>delay()</code> itself is already equipped with a <code>BUGGIFY</code> to randomly lengthen the sleep duration, but due to `delay()&#8217;s pervasive use across the codebase, it&#8217;s set to a low chance of happening to avoid drastically prolonging test duration with sleeps.  Inserting additional delays at a higher level allows emphasizing those operations which might be vulnerable to delays.</p>
-</div>
-<div class="paragraph">
 <p>As a concrete example, rather than entirely relying on random packet delays, a FoundationDB transaction log will sometimes pretend it didn&#8217;t hear the reply that it should kill itself:</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="cpp"><span class="keyword">if</span> (isDisplaced) {
@@ -124,18 +94,12 @@
 }</code></pre>
 </div>
 </div>
-<div class="paragraph">
 <p>Which allows simulation to more frequently test what happens if transaction logs stay as participants in the cluster longer than they&#8217;re supposed to.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_randomizing_tuning_knobs">Randomizing Tuning Knobs</h3>
-<div class="paragraph">
+<h3 id="_randomizing_tuning_knobs" > 
+Randomizing Tuning Knobs
+</h3> 
 <p>FoundationDB has a large collection of tuning knobs that can be used to fine tune FoundationDB&#8217;s behavior to a particular deployment environment.  (748 of them at the time of writing.)  With these, one would wish some degree of testing that changing their default values is safe, and that changing a combination of them together is still safe.  The tuning knob initialization code uses <code>BUGGIFY</code> to randomize the tuning configuration.</p>
-</div>
-<div class="paragraph">
 <p>This could be to choose a random setting for a single knob:</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="cpp">init( DESIRED_TEAMS_PER_SERVER, <span class="integer">5</span> );
@@ -143,9 +107,7 @@
     DESIRED_TEAMS_PER_SERVER = deterministicRandom()-&gt;random  Int(<span class="integer">1</span>, <span class="integer">10</span>);</code></pre>
 </div>
 </div>
-<div class="paragraph">
 <p>To verify that code hidden behind a feature flag is tested:</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="cpp">init( LOG_ROUTER_PEEK_FROM_SATELLITES_PREFERRED, <span class="integer">1</span> );
@@ -153,9 +115,7 @@
     LOG_ROUTER_PEEK_FROM_SATELLITES_PREFERRED = <span class="integer">0</span>;</code></pre>
 </div>
 </div>
-<div class="paragraph">
 <p>To make sure that default knob settings aren&#8217;t masking bugs:</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="cpp">init( DD_MOVE_KEYS_PARALLELISM, <span class="integer">15</span> );
@@ -163,9 +123,7 @@
   DD_MOVE_KEYS_PARALLELISM = <span class="integer">1</span>;</code></pre>
 </div>
 </div>
-<div class="paragraph">
 <p>To force code that handles edge cases to run frequently:</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="cpp">init( MAX_COMMIT_UPDATES, <span class="integer">2000</span> );
@@ -173,9 +131,7 @@
     MAX_COMMIT_UPDATES = <span class="integer">1</span>;</code></pre>
 </div>
 </div>
-<div class="paragraph">
 <p>Or used to set a group of related knobs together:</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="cpp"><span class="predefined-type">bool</span> smallTlogTarget = randomize &amp;&amp; BUGGIFY;
@@ -189,12 +145,8 @@ init( SPRING_BYTES_TLOG_BATCH,       <span class="integer">30</span><span class=
 <span class="keyword">if</span>( smallTlogTarget ) SPRING_BYTES_TLOG_BATCH = <span class="integer">15</span><span class="float">0</span>e3;</code></pre>
 </div>
 </div>
-<div class="paragraph">
 <p>Some of these tuning knobs would have otherwise been hardcoded constants, but promoting them to a tuning knob was an easy way to allow their value to be subjected to <code>BUGGIFY</code>.</p>
-</div>
-<div class="paragraph">
 <p>Knob configuration globally affects all code in the simulation test for the duration of the test.  Some instances might wish to <code>BUGGIFY</code> per instance or use:</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="cpp"><span class="comment">// Knobs.cpp</span>
@@ -206,9 +158,7 @@ state <span class="predefined-type">int</span> fetchBlockBytes = BUGGIFY ? SERVE
                                     : SERVER_KNOBS-&gt;FETCH_BLOCK_BYTES;</code></pre>
 </div>
 </div>
-<div class="paragraph">
 <p>Or set per object instantiated:</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="cpp"><span class="keyword">class</span> <span class="class">RawDiskQueue_TwoFiles</span> {
@@ -223,18 +173,12 @@ state <span class="predefined-type">int</span> fetchBlockBytes = BUGGIFY ? SERVE
 };</code></pre>
 </div>
 </div>
-<div class="paragraph">
 <p>Which in the end is to say: take all the constants and tuning knobs in your program, and <code>BUGGIFY</code> them either into a range of plausible production values, or a range of values that will increase testing coverage of the feature they control.  Use whichever trick illustrated above that gets you the most coverage.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_damage_control">Damage Control</h3>
-<div class="paragraph">
+<h3 id="_damage_control" > 
+Damage Control
+</h3> 
 <p>As a last note on <code>BUGGIFY</code>, the goal of fault injection testing is to cause chaos, and then enforce that the system can correctly recover.  As the fault injection occurs randomly in the background, we need to define a point in time where the goal of the test becomes more about allowing the system to recover and end the test, than causing chaos.</p>
-</div>
-<div class="paragraph">
 <p>This point is defined in FoundationDB as 300 (simulated) seconds into a test, <code>g_simulator.speedUpSimulation</code> is set to true.  Various <code>BUGGIFY</code> lines that can cause extensive failures are instead written as</p>
-</div>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="cpp"><span class="keyword">if</span> (g_network-&gt;isSimulated() &amp;&amp;
@@ -244,12 +188,7 @@ state <span class="predefined-type">int</span> fetchBlockBytes = BUGGIFY ? SERVE
 }</code></pre>
 </div>
 </div>
-<div class="paragraph">
 <p>So that they disable themselves once our goal is finishing the test, and not injecting as many failures as possible.</p>
-</div>
-</div>
-</div>
-</div>
     <script data-goatcounter="https://transactionalblog.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
   </body>
