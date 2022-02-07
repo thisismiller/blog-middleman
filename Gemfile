@@ -8,3 +8,4 @@ gem 'wdm', '~> 0.1', platforms: [:mswin, :mingw, :x64_mingw]
 gem 'middleman-asciidoc', git: 'https://github.com/middleman/middleman-asciidoc', ref: '30d4134'
 gem 'coderay'
 gem 'asciidoctor-diagram'
+gem 'nokogiri'

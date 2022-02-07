@@ -1,6 +1,8 @@
 = BUGGIFY
 :revdate: 20-12-2021
 
+When application code provides high-level fault injection points, fuzzing becomes signficiantly more effective.
+
 == Behavior
 
 FoundationDB's correctness is validated with a deterministic simulation framework that productively fuzzes faults against a specification of the system's behavior.

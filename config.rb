@@ -30,10 +30,19 @@ end
 ::Middleman::Extensions.register(:imagedir_per_asciidoc, ImageDirPerAsciidoc)
 activate :imagedir_per_asciidoc
 
+require 'nokogiri'
 activate :blog do |blog|
   blog.sources = "{category}/{counter}-{title}.html"
   blog.permalink = "{category}/{title}.html"
   blog.default_extension = ".adoc"
+  blog.summary_generator = Proc.new { |article, rendered, length, ellipsis|
+    f = Nokogiri::HTML(rendered).at('body > #preamble')
+    if f
+      f.to_html
+    else
+      ''
+    end
+  }
 end
 
 # Layouts

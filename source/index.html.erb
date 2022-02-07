@@ -1,10 +1,21 @@
-<% blog.articles.group_by {|a| a.data[:category] }.each do |category, articles| %>
-
+---
+title: transactional.blog
+no_title: true
+---
+<% blog.articles
+  .select {|a| (@app.environment? :development) || !a.data.hidden}
+  .sort_by {|a| a.data.counter.to_i}
+  .group_by {|a| a.data.category}
+  .sort_by {|k,v| k} # Cheap hack to get blog first for now.
+  .each do |category, articles| %>
 <h2><%= category %></h2>
 <ul>
   <% articles.each do |article| %>
-    <li><a href="<%= article.url %>"><%= article.title %></a></li>
+    <li>
+      <a href="<%= article.url %>"><%= article.title %></a>
+      <br />
+      <%= article.summary %>
+    </li>
   <% end %>
 </ul>
-
 <% end %>

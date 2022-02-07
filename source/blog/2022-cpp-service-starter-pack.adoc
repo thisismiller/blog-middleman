@@ -1,5 +1,5 @@
 = C++ Service Starter Pack
-:page-published: false
+:page-hidden: true
 :revdate: 01-02-2022
 :toc: preamble
 

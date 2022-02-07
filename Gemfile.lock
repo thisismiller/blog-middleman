@@ -96,7 +96,11 @@ GEM
       toml
       uglifier (~> 3.0)
       webrick
+    mini_portile2 (2.7.1)
     minitest (5.15.0)
+    nokogiri (1.13.1)
+      mini_portile2 (~> 2.7.0)
+      racc (~> 1.4)
     padrino-helpers (0.15.1)
       i18n (>= 0.6.7, < 2)
       padrino-support (= 0.15.1)
@@ -105,6 +109,7 @@ GEM
     parallel (1.21.0)
     parslet (2.0.0)
     public_suffix (4.0.6)
+    racc (1.6.0)
     rack (2.2.3)
     rb-fsevent (0.11.0)
     rb-inotify (0.10.1)
@@ -135,6 +140,7 @@ DEPENDENCIES
   middleman-asciidoc!
   middleman-autoprefixer (~> 3.0)
   middleman-blog
+  nokogiri
   tzinfo-data
   wdm (~> 0.1)
 
