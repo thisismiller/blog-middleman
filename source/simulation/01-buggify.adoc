@@ -1,7 +1,7 @@
 = BUGGIFY
 :revdate: 20-12-2021
 
-When application code provides high-level fault injection points, fuzzing becomes signficiantly more effective.
+When application code provides high-level fault injection points, fuzzing becomes significantly more effective.
 
 == Behavior
 
