@@ -1,0 +1,180 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Use the title from a page's frontmatter if it has one -->
+    <title>C++ Service Starter Pack</title>
+    <link href="/stylesheets/post.css" rel="stylesheet" />
+    <link href="/stylesheets/coderay.css" rel="stylesheet" />
+    <script src="/javascripts/site.js"></script>
+  </head>
+  <body>
+    <h1>C++ Service Starter Pack</h1>
+    <h2 id="_io_framework" > 
+IO Framework
+</h2> 
+<p>Requirements:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Event driven</p>
+</li>
+<li>
+<p>Supports multiple threads</p>
+</li>
+<li>
+<p>Handles both network and disk IO</p>
+</li>
+<li>
+<p>TCP required, preferably UDP and unix domain as well</p>
+</li>
+</ul>
+</div>
+<p>If you&#8217;re building an IO-intensive, Linux-only service, strongly consider using <a href="http://seastar.io/">Seastar</a>.  Its thread-per-core architecture is the best for database or load balancer-like services, and provides the ability to upgrade to DPDK/SPDK on bare metal if needed.  However, Seastar requires that all potentially blocking calls made in any library must go through Seastar.  Thus, it is more of a lifestyle than a framework.  This will reduce your choice of potential metrics/logging/etc. library to only what Seastar provides, or you must write your own.  If your service contains notable amounts of business logic, or is not critically sensitive to latency, then the advantages of Seastar are unlikely to be worth its costs.</p>
+<p>What library to use here is potentially tied to one&#8217;s choice of RPC protocol.  When using <a href="https://grpc.io/">gRPC</a>, it probably makes the most sense to just use <a href="https://github.com/grpc/grpc">grpc/grpc<span class="image"><img src="https://github.com/favicon.ico" alt="GitHub" width="14" height="14"></span></a>.</p>
+<h2 id="_metrics" > 
+Metrics
+</h2> 
+<p>Requirements:</p>
+<h2 id="_logging" > 
+Logging
+</h2> 
+<p>My ideal logging framework permits easy semi-structured logging, while being efficient and flexible.  An invocation would look like:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="CodeRay highlight"><code data-lang="cpp">LOG(INFO, <span class="string"><span class="delimiter">&quot;</span><span class="content">User {user} has performed action {action}.</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">admin</span><span class="delimiter">&quot;</span></span>, <span class="string"><span class="delimiter">&quot;</span><span class="content">login</span><span class="delimiter">&quot;</span></span>);</code></pre>
+</div>
+</div>
+<p>Which will get turned into two things: <code>1970-00-00 00:00:00 INFO User admin has performed action login.</code> and <code>{ "date": "1970-00-00 00:00:00", "severity": "INFO", "user": "admin", "action": login }</code>.  The former is for humans to read, the latter is to be uploaded into a data warehouse for aggregation and analysis.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/google/glog">google/glog<span class="image"><img src="https://github.com/favicon.ico" alt="GitHub" width="14" height="14"></span></a></p>
+</li>
+<li>
+<p><a href="https://github.com/gabime/spdlog">gabime/spdlog<span class="image"><img src="https://github.com/favicon.ico" alt="GitHub" width="14" height="14"></span></a></p>
+</li>
+<li>
+<p><a href="https://github.com/Morgan-Stanley/binlog">Morgan-Stanley/binlog<span class="image"><img src="https://github.com/favicon.ico" alt="GitHub" width="14" height="14"></span></a></p>
+</li>
+<li>
+<p><a href="https://github.com/odygrd/quill">odygrd/quill<span class="image"><img src="https://github.com/favicon.ico" alt="GitHub" width="14" height="14"></span></a></p>
+</li>
+</ul>
+</div>
+<h2 id="_flags" > 
+Flags
+</h2> 
+<p>Requirements:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Parses command line arguments into flags</p>
+</li>
+<li>
+<p>Generates informative documentation on their usage</p>
+</li>
+<li>
+<p>Allows defining a variety of tuning knobs which are hidden from the user by default</p>
+</li>
+<li>
+<p>Allows changing of flag values at runtime, preferably with annotation of which flags are safe to change at runtime.</p>
+</li>
+</ul>
+</div>
+<p>Some projects define a configuration file which has the extended set of tuning knobs, instead of allowing them to be set as command line flags.</p>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+<col style="width: 20%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"></th>
+<th class="tableblock halign-left valign-top">Parsing</th>
+<th class="tableblock halign-left valign-top">Documentation</th>
+<th class="tableblock halign-left valign-top">Flags vs knobs</th>
+<th class="tableblock halign-left valign-top">Runtime setting</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">gflags</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">boost.program_options</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">cxxopts</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">✅</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">❌</p></td>
+</tr>
+</tbody>
+</table>
+<p>Legend:
+✅ = supported
+⛏️ = not supported, but able to be built using the library
+❌ = not supported, and the library does not permit this to be built</p>
+<h2 id="_testing" > 
+Testing
+</h2> 
+<p>The combination of <a href="https://github.com/google/googletest">google/googletest<span class="image"><img src="https://github.com/favicon.ico" alt="GitHub" width="14" height="14"></span></a>, <a href="https://github.com/google/benchmark">google/benchmark<span class="image"><img src="https://github.com/favicon.ico" alt="GitHub" width="14" height="14"></span></a>, and <a href="https://github.com/google/googlemock">google/googlemock<span class="image"><img src="https://github.com/favicon.ico" alt="GitHub" width="14" height="14"></span></a> has always worked well enough for me that I&#8217;ve never looked elsewhere.</p>
+<p><a href="https://github.com/catchorg/Catch2">catchorg/Catch2<span class="image"><img src="https://github.com/favicon.ico" alt="GitHub" width="14" height="14"></span></a> appears to be the other main contender for a unit testing library.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/emil-e/rapidcheck">emil-e/rapidcheck<span class="image"><img src="https://github.com/favicon.ico" alt="GitHub" width="14" height="14"></span></a> - Property testing</p>
+</li>
+</ul>
+</div>
+<h2 id="_quality_of_life" > 
+Quality of Life
+</h2> 
+<p>There&#8217;s a number of libraries that don&#8217;t satisfy a key necessity for a service, but just make development nicer or easier:</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/bombela/backward-cpp">bombela/backward-cpp<span class="image"><img src="https://github.com/favicon.ico" alt="GitHub" width="14" height="14"></span></a> - Informative stacktraces on crash</p>
+</li>
+<li>
+<p><a href="https://github.com/Neargye/magic_enum">Neargye/magic_enum<span class="image"><img src="https://github.com/favicon.ico" alt="GitHub" width="14" height="14"></span></a> - Reflection for enums</p>
+</li>
+<li>
+<p><a href="https://github.com/sharkdp/dbg-macro">sharkdp/dbg-macro<span class="image"><img src="https://github.com/favicon.ico" alt="GitHub" width="14" height="14"></span></a> - Simple/pretty macro for printf debugging</p>
+</li>
+</ul>
+</div>
+<h2 id="_special_purpose" > 
+Special Purpose
+</h2> 
+<p>There&#8217;s a number of libraries that fall into the category of "If you&#8217;re doing a lot of X, then you should use Y."</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Hashing: <a href="https://github.com/Cyan4973/xxHash">Cyan4973/xxHash<span class="image"><img src="https://github.com/favicon.ico" alt="GitHub" width="14" height="14"></span></a></p>
+</li>
+<li>
+<p>Regex: <a href="https://github.com/intel/hyperscan">intel/hyperscan<span class="image"><img src="https://github.com/favicon.ico" alt="GitHub" width="14" height="14"></span></a></p>
+</li>
+</ul>
+</div>
+    <script data-goatcounter="https://transactionalblog.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+  </body>
+</html>
