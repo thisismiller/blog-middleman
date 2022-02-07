@@ -1,0 +1,93 @@
+= C++ Service Starter Pack
+:page-published: false
+:revdate: 01-02-2022
+:toc: preamble
+
+== IO Framework
+
+Requirements:
+
+- Event driven
+- Supports multiple threads
+- Handles both network and disk IO
+- TCP required, preferably UDP and unix domain as well
+
+If you're building an IO-intensive, Linux-only service, strongly consider using http://seastar.io/[Seastar].  Its thread-per-core architecture is the best for database or load balancer-like services, and provides the ability to upgrade to DPDK/SPDK on bare metal if needed.  However, Seastar requires that all potentially blocking calls made in any library must go through Seastar.  Thus, it is more of a lifestyle than a framework.  This will reduce your choice of potential metrics/logging/etc. library to only what Seastar provides, or you must write your own.  If your service contains notable amounts of business logic, or is not critically sensitive to latency, then the advantages of Seastar are unlikely to be worth its costs.
+
+What library to use here is potentially tied to one's choice of RPC protocol.  When using https://grpc.io/[gRPC], it probably makes the most sense to just use github:grpc/grpc[].
+
+== Metrics
+
+Requirements:
+
+
+
+== Logging
+
+My ideal logging framework permits easy semi-structured logging, while being efficient and flexible.  An invocation would look like:
+
+[source,cpp]
+----
+LOG(INFO, "User {user} has performed action {action}.", "admin", "login");
+----
+
+Which will get turned into two things: `1970-00-00 00:00:00 INFO User admin has performed action login.` and `{ "date": "1970-00-00 00:00:00", "severity": "INFO", "user": "admin", "action": login }`.  The former is for humans to read, the latter is to be uploaded into a data warehouse for aggregation and analysis.
+
+- github:google/glog[]
+- github:gabime/spdlog[]
+- github:Morgan-Stanley/binlog[]
+- github:odygrd/quill[]
+
+== Flags
+
+Requirements:
+
+- Parses command line arguments into flags
+- Generates informative documentation on their usage
+- Allows defining a variety of tuning knobs which are hidden from the user by default
+- Allows changing of flag values at runtime, preferably with annotation of which flags are safe to change at runtime.
+
+Some projects define a configuration file which has the extended set of tuning knobs, instead of allowing them to be set as command line flags.
+
+
+[%header, cols=5]
+|===
+|
+| Parsing
+| Documentation
+| Flags vs knobs
+| Runtime setting
+
+| gflags                | ✅ | ❌ | ❌ | ✅
+| boost.program_options | ✅ | ❌ | ❌ | ❌
+| cxxopts               | ✅ | ❌ | ❌ | ❌
+|===
+
+Legend:
+✅ = supported
+⛏️ = not supported, but able to be built using the library
+❌ = not supported, and the library does not permit this to be built
+
+== Testing
+
+The combination of github:google/googletest[], github:google/benchmark[], and github:google/googlemock[] has always worked well enough for me that I've never looked elsewhere.
+
+github:catchorg/Catch2[] appears to be the other main contender for a unit testing library.
+
+- github:emil-e/rapidcheck[] - Property testing
+
+== Quality of Life
+
+There's a number of libraries that don't satisfy a key necessity for a service, but just make development nicer or easier:
+
+- github:bombela/backward-cpp[] - Informative stacktraces on crash
+- github:Neargye/magic_enum[] - Reflection for enums
+- github:sharkdp/dbg-macro[] - Simple/pretty macro for printf debugging
+
+== Special Purpose
+
+There's a number of libraries that fall into the category of "If you're doing a lot of X, then you should use Y."
+
+- Hashing: github:Cyan4973/xxHash[]
+- Regex: github:intel/hyperscan[]
+
