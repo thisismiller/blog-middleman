@@ -1,6 +1,7 @@
 = Time Synchronization
 :revdate: 19-12-2021
 :page-style: new-post
+:page-hidden: true
 :toc: preamble
 
 A collection of notes and links from looking at projects and papers on time synchronization.
