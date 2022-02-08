@@ -6,7 +6,7 @@ activate :autoprefixer do |prefix|
 end
 
 require 'asciidoctor-diagram'
-require_relative 'asciidoc_extensions/github_macro'
+require_relative 'asciidoc_extensions/inline_macros'
 activate :asciidoc, safe: :unsafe, template_dirs: 'asciidoc_templates', attributes: ['source-highlighter=coderay', 'toc-title=']
 set :skip_build_clean, proc {|f| f.start_with? 'build/images/'}
 

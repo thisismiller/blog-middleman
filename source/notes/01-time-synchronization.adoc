@@ -11,7 +11,7 @@ A collection of notes and links from looking at projects and papers on time sync
 
 === Usage
 
-The API for fetching NTP's state is https://manpage.me/?q=ntp_adjtime[ntp_adjtime(2)].  Significantly shortened:
+The API for fetching NTP's state is man:ntp_adjtime[2].  Significantly shortened:
 
 [source,man]
 ----
@@ -41,7 +41,7 @@ Specifically, chrony will never step the system clock after the initial synchron
 
 ==== https://github.com/apache/kudu/blob/1d3cb5cba6fa09d646af3e93ce92632b129cab27/src/kudu/clock/builtin_ntp.cc#L913[[Kudu\]] Call `sched_yield()` before checking and sending the time
 
-Any unpredictable delay between fetching the current time and sending it across the network will increase the error on clock synchronization.  One of the potential causes of unpredictable delay is preemption. Invoking `sched_yield()` before fetching and sending the time will make it highly unlikely that the time quantum is exceeded between checking and sending the time.
+Any unpredictable delay between fetching the current time and sending it across the network will increase the error on clock synchronization.  One of the potential causes of unpredictable delay is preemption. Invoking man:sched_yield[2] before fetching and sending the time will make it highly unlikely that the time quantum is exceeded between checking and sending the time.
 
 ==== https://github.com/apache/kudu/commit/53533bbc88183710329285789db5572e173a9abb[[Kudu\]] Detect cloud type, and configure NTP to cloud's NTP provider
 
@@ -59,7 +59,7 @@ It's possible that ntp_adjtime will fail for a brief window as the clock tempora
 
 ==== `SCM_DROP_IF_LATE`
 
-When pulling the current time and sending it across the network, calling `sched_yield()` makes a decent attempt at not context switching away between the first and second parts.  However, calling `send()` on a packet, and it actually being sent, are two different things.   `sendmsg()` accepts a flag `SCM_DROP_IF_LATE`, which adds a deadline when enqueing a packet into the network stack.  If it can't be sent before the deadline, then it will be dropped.  This seems like it would help bound how late a packet could be sent out after the current system time was checked.
+When pulling the current time and sending it across the network, calling `sched_yield()` makes a decent attempt at not context switching away between the first and second parts.  However, calling `send()` on a packet, and it actually being sent, are two different things. `sendmsg()` accepts a flag `SCM_DROP_IF_LATE`, which adds a deadline when enqueing a packet into the network stack.  If it can't be sent before the deadline, then it will be dropped.  This seems like it would help bound how late a packet could be sent out after the current system time was checked.
 
 I don't see anyone using it for this case.  There's very few uses of it at all, only https://github.com/search?q=SCM_DROP_IF_LATE&type=code[10 hits on github code search].  Historically this has correlated with kernel features that are either partially implemented or have significant limitations.
 
