@@ -1,0 +1,29 @@
+---
+layout: none
+---
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlsn="http://www.w3.org/2005/Atom">
+  <title>Transactional</title>
+  <link href="https://transactional.blog/" />
+  <updated><%= Time.now.utc.iso8601 %></updated>
+  <id>https://transactional.blog/</id>
+  <icon>/favicon.ico</icon>
+
+<% blog.articles
+  .select {|a| (@app.environment? :development) || !a.data.hidden}
+  .map {|a| [ a.data.date.is_a?(String) ? Time.zone.parse(a.data.date) : a.data.date, a]}
+  .sort_by {|date, a| date}
+  .reverse
+  .each do |date, post| %>
+  <entry>
+    <title><%= post.title %></title>
+    <link href="<%= post.url %>" />
+    <id><%= post.url %></id>
+    <category term="<%= post.data.category %>" />
+    <updated><%= date.iso8601 %></updated>
+    <% if post.summary %>
+    <summary><%= post.summary %></summary>
+    <% end %>
+  </entry>
+<% end %>
+</feed>
