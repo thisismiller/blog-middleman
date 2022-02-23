@@ -32,7 +32,7 @@ activate :imagedir_per_asciidoc
 
 require 'nokogiri'
 activate :blog do |blog|
-  blog.sources = "{category}/{counter}-{title}.html"
+  blog.sources = "{category}/{title}.html"
   blog.permalink = "{category}/{title}.html"
   blog.default_extension = ".adoc"
   blog.summary_generator = Proc.new { |article, rendered, length, ellipsis|
@@ -40,7 +40,7 @@ activate :blog do |blog|
     if f
       f.to_html
     else
-      ''
+      Nokogiri::HTML(rendered).at('body > p')&.to_html
     end
   }
 end
@@ -54,20 +54,6 @@ page '/*.json', layout: false
 page '/*.txt', layout: false
 
 ignore /.*\.swp/
-
-# With alternative layout
-# page '/path/to/file.html', layout: 'other_layout'
-
-# Proxy pages
-# https://middlemanapp.com/advanced/dynamic-pages/
-
-# proxy(
-#   '/this-page-has-no-template.html',
-#   '/template-file.html',
-#   locals: {
-#     which_fake_page: 'Rendering a fake page with a local variable'
-#   },
-# )
 
 # Helpers
 # Methods defined in the helpers block are available in templates
@@ -93,8 +79,3 @@ configure :transactionalblog do
   activate :minify_css
   activate :minify_javascript
 end
-
-# configure :build do
-#   activate :minify_css
-#   activate :minify_javascript
-# end

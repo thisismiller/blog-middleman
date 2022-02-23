@@ -1,0 +1,35 @@
+<!doctype html>
+<% category = current_path.delete_suffix '/index.html' %>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title><%= current_page.data.title || category || "Index" %></title>
+    <%= stylesheet_link_tag (current_page.data.style || "post") %>
+    <%= javascript_include_tag "site" %>
+  </head>
+  <body>
+    <h1><%= current_page.data.title || category || "Index" %></h1>
+    <%= yield %>
+
+<% blog.articles
+  .select {|a| a.data.category == category }
+  .select {|a| !a.path.end_with? 'index.html' }
+  .select {|a| (@app.environment? :development) || !a.data.hidden}
+  .sort_by {|a| a.data.counter.to_i}
+  .each do |article| %>
+    <li>
+      <a href="<%= article.url %>"><%= article.title %></a>
+      <br />
+      <%= article.summary %>
+    </li>
+<% end %>
+
+    <% if environment == :transactionalblog %>
+    <script data-goatcounter="https://transactionalblog.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+    <% end %>
+  </body>
+</html>

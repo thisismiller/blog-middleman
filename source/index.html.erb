@@ -2,20 +2,25 @@
 title: transactional.blog
 no_title: true
 ---
+
+<% category_shown = blog.articles
+  .select {|a| (@app.environment? :development) || !a.data.hidden }
+  .select {|a| !a.path.end_with? 'index.html'}
+  .map {|a| a.data.category} %>
+
+<ul>
 <% blog.articles
   .select {|a| (@app.environment? :development) || !a.data.hidden}
-  .sort_by {|a| a.data.counter.to_i}
-  .group_by {|a| a.data.category}
-  .sort_by {|k,v| k} # Cheap hack to get blog first for now.
-  .each do |category, articles| %>
-<h2><%= category %></h2>
-<ul>
-  <% articles.each do |article| %>
-    <li>
+  .select {|a| (a.data.category == 'blog') ||
+               ((a.path.end_with? 'index.html') &&
+                (category_shown.include? a.data.category))}
+  .sort_by {|a| a.date}
+  .reverse
+  .each do |article| %>
+  <li>
       <a href="<%= article.url %>"><%= article.title %></a>
       <br />
       <%= article.summary %>
-    </li>
-  <% end %>
-</ul>
+  </li>
 <% end %>
+</ul>
