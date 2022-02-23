@@ -6,24 +6,32 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Use the title from a page's frontmatter if it has one -->
-    <title>Time Synchronization</title>
+    <title>NTP</title>
     <link href="/stylesheets/new-post.css" rel="stylesheet" />
     <link href="/stylesheets/coderay.css" rel="stylesheet" />
     <script src="/javascripts/site.js"></script>
   </head>
   <body>
-    <h1>Time Synchronization</h1>
+    <h1>NTP</h1>
     <div id="preamble">
-  <p>A collection of notes and links from looking at projects and papers on time synchronization.</p>
+  <p>The Network Time Protocol is the most available and widely-used time synchronization protocol, but offers the worst theoretical bounds.</p>
 </div>
 
   <div class="toc">
   <ul class="sectlevel1">
-<li><a href="#_ntp">NTP</a>
-<ul class="sectlevel2">
 <li><a href="#_overview">Overview</a></li>
-<li><a href="#_usage">Usage</a></li>
-<li><a href="#_open_questions">Open Questions</a></li>
+<li><a href="#_usage">Usage</a>
+<ul class="sectlevel2">
+<li><a href="#_kudu_wait_for_ntp_synchronization_on_startup_before_checking_the_time">[Kudu] Wait for NTP synchronization on startup before checking the time</a></li>
+<li><a href="#_kudu_call_sched_yield_before_checking_and_sending_the_time">[Kudu] Call <code>sched_yield()</code> before checking and sending the time</a></li>
+<li><a href="#_kudu_detect_cloud_type_and_configure_ntp_to_clouds_ntp_provider">[Kudu] Detect cloud type, and configure NTP to cloud&#8217;s NTP provider</a></li>
+<li><a href="#_kudu_always_re_check_sta_nano_as_it_can_change_at_runtime">[Kudu] Always re-check STA_NANO, as it can change at runtime.</a></li>
+<li><a href="#_kudu_tolerate_transient_failures_in_ntp_adjtime">[Kudu] Tolerate transient failures in <code>ntp_adjtime</code></a></li>
+</ul>
+</li>
+<li><a href="#_open_questions">Open Questions</a>
+<ul class="sectlevel2">
+<li><a href="#_scm_drop_if_late"><code>SCM_DROP_IF_LATE</code></a></li>
 </ul>
 </li>
 <li><a href="#_ptp">PTP</a></li>
@@ -31,16 +39,13 @@
 <li><a href="#_references">References</a></li>
 </ul>
   </div>
-<h2 id="_ntp" > 
-NTP
-</h2> 
-<h3 id="_overview" > 
+<h2 id="_overview" > 
 Overview
-</h3>
-<h3 id="_usage" > 
+</h2>
+<h2 id="_usage" > 
 Usage
-</h3> 
-<p>The API for fetching NTP&#8217;s state is <a href="https://manpage.me/?q=ntp_adjtime">ntp_adjtime(2)</a>.  Significantly shortened:</p>
+</h2> 
+<p>The API for fetching NTP&#8217;s state is <a href="https://man7.org/linux/man-pages/man2/ntp_adjtime.2.html">ntp_adjtime(2)<span class="image"><img src="https://www.kernel.org/theme/images/logos/favicon.png" alt="Linux" width="14" height="14"></span></a>.  Significantly shortened:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="CodeRay highlight"><code data-lang="man">SYNOPSIS
@@ -62,34 +67,34 @@ DESCRIPTION
            };</code></pre>
 </div>
 </div>
-<h4 id="_kudu_wait_for_ntp_synchronization_on_startup_before_checking_the_time" > 
+<h3 id="_kudu_wait_for_ntp_synchronization_on_startup_before_checking_the_time" > 
 <a href="https://github.com/cloudera/kudu/commit/1c3cbb1c7d27bd659719a45c5904f1c06df65e45">[Kudu]</a> Wait for NTP synchronization on startup before checking the time
-</h4> 
+</h3> 
 <p>Time system time can experience a large jump (forwards or backwards) when a system synchronizes with NTP for the first time.  It is wise to wait for that synchronization to occur first before checking the system time.</p>
 <p>Specifically, chrony will never step the system clock after the initial synchronization, so time will always be monotonic thereafter (as long as chrony remains in control of the system clock).</p>
-<h4 id="_kudu_call_sched_yield_before_checking_and_sending_the_time" > 
+<h3 id="_kudu_call_sched_yield_before_checking_and_sending_the_time" > 
 <a href="https://github.com/apache/kudu/blob/1d3cb5cba6fa09d646af3e93ce92632b129cab27/src/kudu/clock/builtin_ntp.cc#L913">[Kudu]</a> Call <code>sched_yield()</code> before checking and sending the time
-</h4> 
-<p>Any unpredictable delay between fetching the current time and sending it across the network will increase the error on clock synchronization.  One of the potential causes of unpredictable delay is preemption. Invoking <code>sched_yield()</code> before fetching and sending the time will make it highly unlikely that the time quantum is exceeded between checking and sending the time.</p>
-<h4 id="_kudu_detect_cloud_type_and_configure_ntp_to_clouds_ntp_provider" > 
-<a href="https://github.com/apache/kudu/commit/53533bbc88183710329285789db5572e173a9abb">[Kudu]</a> Detect cloud type, and configure NTP to cloud&#8217;s NTP provider
-</h4> 
-<p>A large number of users are running on the cloud, and a number of cloud providers offer highly accurate NTP endpoints.  Therefore, it&#8217;s a nice addition to auto-detect the fact that the program is running on a cloud provider, and automatically configure NTP to point at the special highly-accurate NTP endpoint.</p>
-<h4 id="_kudu_always_re_check_sta_nano_as_it_can_change_at_runtime" > 
-<a href="https://github.com/cloudera/kudu/commit/10f6164b1217e0299bcfedc061d2c57581c389bd">[Kudu]</a> Always re-check STA_NANO, as it can change at runtime.
-</h4> 
-<p>NTP will either offer your time in milliseconds or nanoseconds.  Some NTP implementations will toggle that choice at runtime, so your code must tolerate transitions between the two.</p>
-<h4 id="_kudu_tolerate_transient_failures_in_ntp_adjtime" > 
-<a href="https://github.com/cloudera/kudu/commit/7f5104586fa381347c582260df539b8cbb02f08b">[Kudu]</a> Tolerate transient failures in <code>ntp_adjtime</code>
-</h4> 
-<p>It&#8217;s possible that ntp_adjtime will fail for a brief window as the clock temporarily loses synchronization.  During this time, you can continue to advance the clock and <code>maxerror</code> manually, and time out after a short window.</p>
-<h3 id="_open_questions" > 
-Open Questions
 </h3> 
-<h4 id="_scm_drop_if_late" > 
+<p>Any unpredictable delay between fetching the current time and sending it across the network will increase the error on clock synchronization.  One of the potential causes of unpredictable delay is preemption. Invoking <a href="https://man7.org/linux/man-pages/man2/sched_yield.2.html">sched_yield(2)<span class="image"><img src="https://www.kernel.org/theme/images/logos/favicon.png" alt="Linux" width="14" height="14"></span></a> before fetching and sending the time will make it highly unlikely that the time quantum is exceeded between checking and sending the time.</p>
+<h3 id="_kudu_detect_cloud_type_and_configure_ntp_to_clouds_ntp_provider" > 
+<a href="https://github.com/apache/kudu/commit/53533bbc88183710329285789db5572e173a9abb">[Kudu]</a> Detect cloud type, and configure NTP to cloud&#8217;s NTP provider
+</h3> 
+<p>A large number of users are running on the cloud, and a number of cloud providers offer highly accurate NTP endpoints.  Therefore, it&#8217;s a nice addition to auto-detect the fact that the program is running on a cloud provider, and automatically configure NTP to point at the special highly-accurate NTP endpoint.</p>
+<h3 id="_kudu_always_re_check_sta_nano_as_it_can_change_at_runtime" > 
+<a href="https://github.com/cloudera/kudu/commit/10f6164b1217e0299bcfedc061d2c57581c389bd">[Kudu]</a> Always re-check STA_NANO, as it can change at runtime.
+</h3> 
+<p>NTP will either offer your time in milliseconds or nanoseconds.  Some NTP implementations will toggle that choice at runtime, so your code must tolerate transitions between the two.</p>
+<h3 id="_kudu_tolerate_transient_failures_in_ntp_adjtime" > 
+<a href="https://github.com/cloudera/kudu/commit/7f5104586fa381347c582260df539b8cbb02f08b">[Kudu]</a> Tolerate transient failures in <code>ntp_adjtime</code>
+</h3> 
+<p>It&#8217;s possible that ntp_adjtime will fail for a brief window as the clock temporarily loses synchronization.  During this time, you can continue to advance the clock and <code>maxerror</code> manually, and time out after a short window.</p>
+<h2 id="_open_questions" > 
+Open Questions
+</h2> 
+<h3 id="_scm_drop_if_late" > 
 <code>SCM_DROP_IF_LATE</code>
-</h4> 
-<p>When pulling the current time and sending it across the network, calling <code>sched_yield()</code> makes a decent attempt at not context switching away between the first and second parts.  However, calling <code>send()</code> on a packet, and it actually being sent, are two different things.   <code>sendmsg()</code> accepts a flag <code>SCM_DROP_IF_LATE</code>, which adds a deadline when enqueing a packet into the network stack.  If it can&#8217;t be sent before the deadline, then it will be dropped.  This seems like it would help bound how late a packet could be sent out after the current system time was checked.</p>
+</h3> 
+<p>When pulling the current time and sending it across the network, calling <code>sched_yield()</code> makes a decent attempt at not context switching away between the first and second parts.  However, calling <code>send()</code> on a packet, and it actually being sent, are two different things. <code>sendmsg()</code> accepts a flag <code>SCM_DROP_IF_LATE</code>, which adds a deadline when enqueing a packet into the network stack.  If it can&#8217;t be sent before the deadline, then it will be dropped.  This seems like it would help bound how late a packet could be sent out after the current system time was checked.</p>
 <p>I don&#8217;t see anyone using it for this case.  There&#8217;s very few uses of it at all, only <a href="https://github.com/search?q=SCM_DROP_IF_LATE&amp;type=code">10 hits on github code search</a>.  Historically this has correlated with kernel features that are either partially implemented or have significant limitations.</p>
 <h2 id="_ptp" > 
 PTP
