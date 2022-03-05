@@ -1,8 +1,8 @@
 = NTP
 :revdate: 19-12-2021
-:page-style: new-post
 :page-hidden: true
 :toc: preamble
+:toclevels: 1
 
 The Network Time Protocol is the most available and widely-used time synchronization protocol, but offers the worst theoretical bounds.
 
@@ -68,6 +68,10 @@ I don't see anyone using it for this case.  There's very few uses of it at all, 
 == Huygens
 
 <<huygens>> is an NTP-like approach, offering PTP-like time bounds.
+
+****
+pass:[Y.] Geng et al., "Exploiting a Natural Network Effect for Scalable, Fine-grained Clock Synchronization," in 15th USENIX Symposium on Networked Systems Design and Implementation (NSDI 18), Renton, WA, Apr. 2018, pp. 81-94. https://www.usenix.org/conference/nsdi18/presentation/geng[[Online\]].
+****
 
 [bibliography]
 == References

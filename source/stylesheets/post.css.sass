@@ -1,0 +1,62 @@
+$text-font: 'Open Sans', sans-serif
+$code-font: 'Inconsolata', monospace
+
+body
+  display: grid
+  grid-template-columns: 1fr fit-content(200px) 10px 700px 10px minmax(200px, 300px) 1fr
+  font-family: $text-font
+  align-items: start
+
+  > *
+    grid-column: 4
+
+h1
+  text-align: center
+
+p, ol
+  margin: 0em 0em
+  margin-top: 0.5em
+  margin-bottom: 0.5em
+  line-height: 1.5em
+  orphans: 3
+
+code
+  font-family: $code-font
+  font-size: 90%
+
+@media (min-width: 1200px)
+  .toc
+    grid-column: 2
+    position: sticky
+    align-self: start
+    top: 0
+    margin-bottom: 0
+    border-bottom: none
+    height: 0px
+    width: 150px
+
+  .toc ul:first-child
+    margin-top: 50px
+    list-style: none
+    padding-left: 0px
+
+  .toc li>ul
+    list-style: none
+    padding-left: 10px
+
+  .toc li
+    padding-top: 5px
+
+@media (max-width: 1000px)
+  aside
+    display: none
+
+@media (min-width: 1000px)
+  aside
+    grid-column: 6
+    padding-right: 1rem
+    margin-bottom: 0
+    font-size: 80%
+    height: 0px
+    width: 300px
+
