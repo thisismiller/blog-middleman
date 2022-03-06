@@ -4,7 +4,7 @@
 :toc: preamble
 :toclevels: 1
 
-The Network Time Protocol is the most available and widely-used time synchronization protocol, but offers the worst theoretical bounds.
+The Network Time Protocol is the most available and widely-used time synchronization protocol, but is claimed to offer the worst maximum clock error.
 
 == Overview
 
@@ -62,8 +62,13 @@ When pulling the current time and sending it across the network, calling `sched_
 
 I don't see anyone using it for this case.  There's very few uses of it at all, only https://github.com/search?q=SCM_DROP_IF_LATE&type=code[10 hits on github code search].  Historically this has correlated with kernel features that are either partially implemented or have significant limitations.
 
-== PTP
+=== TCP Timestamps
 
+{uri-tcp-high-performance}: https://datatracker.ietf.org/doc/html/rfc7323
+
+{uri-tcp-high-performance}[TCP Extensions for High Performance] defines a TCP extension, TCP Timestamps, which places a timestamp on all packets.  This is used to build Round Trip Time Measurement into the TCP protocol.  While this has utility for TCP itself, this seems quite useful as a way to continuously transparently synchronize your clock with peers.  However, I can't seem to find any way that the timestamps are exposed to userspace or eBPF for processing.
+
+== PTP
 
 == Huygens
 
