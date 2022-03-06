@@ -8,7 +8,6 @@ no_title: true
   .select {|a| !a.path.end_with? 'index.html'}
   .map {|a| a.data.category} %>
 
-<ul>
 <% blog.articles
   .select {|a| (@app.environment? :development) || !a.data.hidden}
   .select {|a| (a.data.category == 'blog') ||
@@ -17,10 +16,8 @@ no_title: true
   .sort_by {|a| a.date}
   .reverse
   .each do |article| %>
-  <li>
-      <a href="<%= article.url %>"><%= article.title %></a>
-      <br />
-      <%= article.summary %>
-  </li>
+  <div class="chapter">
+    <h3><a href="<%= article.url %>"><%= article.title %></a></h5>
+    <%= article.summary %>
+  </div>
 <% end %>
-</ul>
