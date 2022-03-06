@@ -6,6 +6,7 @@ body
   grid-template-columns: 1fr fit-content(200px) 10px 700px 10px minmax(200px, 300px) 1fr
   font-family: $text-font
   align-items: start
+  background-color: #f8f8f8
 
   > *
     grid-column: 4
@@ -19,6 +20,7 @@ p, ol
   margin-bottom: 0.5em
   line-height: 1.5em
   orphans: 3
+  color: #101010
 
 code
   font-family: $code-font
@@ -49,7 +51,11 @@ code
 
 @media (max-width: 1000px)
   aside
-    display: none
+    grid-column: 4
+    font-size: 80%
+
+  aside p
+    color: #404040 !important
 
 @media (min-width: 1000px)
   aside
@@ -59,4 +65,7 @@ code
     font-size: 80%
     height: 0px
     width: 300px
+
+  aside p
+    color: #404040 !important
 
