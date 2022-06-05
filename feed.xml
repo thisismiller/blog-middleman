@@ -2,17 +2,19 @@
 <feed xmlsn="http://www.w3.org/2005/Atom">
   <title>Transactional</title>
   <link href="https://transactional.blog/" />
-  <updated>2022-02-23T01:44:39Z</updated>
+  <updated>2022-06-05T09:37:50Z</updated>
   <id>https://transactional.blog/</id>
   <icon>/favicon.ico</icon>
 
   <entry>
-    <title>Time Synchronization</title>
-    <link href="/timesync/" />
-    <id>/timesync/</id>
-    <category term="timesync" />
-    <updated>2022-02-22</updated>
-    <summary><p>A collection of notes and links from looking at projects and papers on time synchronization.</p></summary>
+    <title>Darwin&#8217;s Deceptive Durability</title>
+    <link href="/blog/2022-darwins-deceptive-durability.html" />
+    <id>/blog/2022-darwins-deceptive-durability.html</id>
+    <category term="blog" />
+    <updated>2022-06-05T00:00:00Z</updated>
+    <summary><div id="preamble">
+  <p>A reminder that macOS does not respect the usual ways of making data durable on disk.</p>
+</div></summary>
   </entry>
   <entry>
     <title>Simulation Testing</title>
@@ -21,6 +23,14 @@
     <category term="simulation" />
     <updated>2022-02-22</updated>
     <summary><p>Simulation testing is simulating a distributed cluster of machines and processes entirely within a single local process.  This permits comprehensive testing of complex systems through fuzzed fault injection.  Single process execution allows for simulation to be deterministic, thus greatly improving debuggablity of complex failures.</p></summary>
+  </entry>
+  <entry>
+    <title>Time Synchronization</title>
+    <link href="/timesync/" />
+    <id>/timesync/</id>
+    <category term="timesync" />
+    <updated>2022-02-22</updated>
+    <summary><p>A collection of notes and links from looking at projects and papers on time synchronization.</p></summary>
   </entry>
   <entry>
     <title>BUGGIFY</title>

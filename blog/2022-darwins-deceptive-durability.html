@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Use the title from a page's frontmatter if it has one -->
+    <title>Darwin&#8217;s Deceptive Durability</title>
+    <link href="/stylesheets/post.css" rel="stylesheet" />
+    <link href="/stylesheets/coderay.css" rel="stylesheet" />
+    <script src="/javascripts/site.js"></script>
+  </head>
+  <body>
+    <h1>Darwin&#8217;s Deceptive Durability</h1>
+    <div id="preamble">
+  <p>A reminder that macOS does not respect the usual ways of making data durable on disk.</p>
+</div>
+<h2 id="_fsync_does_not_fsync" > 
+fsync does not fsync
+</h2> 
+<p>As per the <a href="https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/fsync.2.html">fsync manpage</a> on darwin:</p>
+<div class="quoteblock">
+<blockquote>
+<p>Note that while fsync() will flush all data from the host to the drive
+(i.e. the "permanent storage device"), the drive itself may not physi-cally physically
+cally write the data to the platters for quite some time and it may be
+written in an out-of-order sequence.</p>
+<p>Specifically, if the drive loses power or the OS crashes, the application
+may find that only some or none of their data was written.  The disk
+drive may also re-order the data so that later writes may be present,
+while earlier writes are not.</p>
+<p>This is not a theoretical edge case.  This scenario is easily reproduced
+with real world workloads and drive power failures.</p>
+<p>For applications that require tighter guarantees about the integrity of
+their data, Mac OS X provides the F_FULLFSYNC fcntl.  The F_FULLFSYNC
+fcntl asks the drive to flush all buffered data to permanent storage.
+Applications, such as databases, that require a strict ordering of writes
+should use F_FULLFSYNC to ensure that their data is written in the order
+they expect.  Please see fcntl(2) for more detail.</p>
+</blockquote>
+</div>
+<p>Note that <code>fcntl(fd, F_FULLSYNC)</code> is equivalent to <code>fsync()</code>, and is not a one-time setting to turn <code>fsync()</code> into <code>fsync()</code>.</p>
+<h2 id="_o_dsync_does_not_o_dsync" > 
+O_DSYNC does not O_DSYNC
+</h2> 
+<p>Instead of writing data into the page cache, and then using fsync() to make it durable, one can request full durability per write() call.
+This is done by passing <code>O_DIRECT | O_DSYNC</code> when calling <code>open()</code> on the file.
+However, darwin silently downgrades this to only <code>O_DIRECT</code>.
+There is no workaround.
+One must use O_FULLSYNC instead.</p>
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">The underlying libuv call for fdatasync() here is actually using F_FULLFSYNC on macOS (I contributed that at the time to libuv).<br><br>You can see the difference between FDATASYNC + O_DIRECT and O_DSYNC + O_DIRECT.<br><br>And the latter, on macOS, is no different from only O_DIRECT (!)<br><br>In other words, O_DSYNC on macOS also doesn&#39;t flush past the disk&#39;s own cache.<br><br>It&#39;s as durable as fcntl(fd, F_NOCACHE, 1). i.e. Not durable at all. ;)</p>&mdash; Joran Dirk Greef (@jorandirkgreef) <a href="https://twitter.com/jorandirkgreef/status/1532317885556830211?ref_src=twsrc%5Etfw">June 2, 2022</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+    <script data-goatcounter="https://transactionalblog.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+  </body>
+</html>

@@ -7,33 +7,21 @@
           content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Use the title from a page's frontmatter if it has one -->
     <title>NTP</title>
-    <link href="/stylesheets/new-post.css" rel="stylesheet" />
+    <link href="/stylesheets/post.css" rel="stylesheet" />
     <link href="/stylesheets/coderay.css" rel="stylesheet" />
     <script src="/javascripts/site.js"></script>
   </head>
   <body>
     <h1>NTP</h1>
     <div id="preamble">
-  <p>The Network Time Protocol is the most available and widely-used time synchronization protocol, but offers the worst theoretical bounds.</p>
+  <p>The Network Time Protocol is the most available and widely-used time synchronization protocol, but is claimed to offer the worst maximum clock error.</p>
 </div>
 
   <div class="toc">
   <ul class="sectlevel1">
 <li><a href="#_overview">Overview</a></li>
-<li><a href="#_usage">Usage</a>
-<ul class="sectlevel2">
-<li><a href="#_kudu_wait_for_ntp_synchronization_on_startup_before_checking_the_time">[Kudu] Wait for NTP synchronization on startup before checking the time</a></li>
-<li><a href="#_kudu_call_sched_yield_before_checking_and_sending_the_time">[Kudu] Call <code>sched_yield()</code> before checking and sending the time</a></li>
-<li><a href="#_kudu_detect_cloud_type_and_configure_ntp_to_clouds_ntp_provider">[Kudu] Detect cloud type, and configure NTP to cloud&#8217;s NTP provider</a></li>
-<li><a href="#_kudu_always_re_check_sta_nano_as_it_can_change_at_runtime">[Kudu] Always re-check STA_NANO, as it can change at runtime.</a></li>
-<li><a href="#_kudu_tolerate_transient_failures_in_ntp_adjtime">[Kudu] Tolerate transient failures in <code>ntp_adjtime</code></a></li>
-</ul>
-</li>
-<li><a href="#_open_questions">Open Questions</a>
-<ul class="sectlevel2">
-<li><a href="#_scm_drop_if_late"><code>SCM_DROP_IF_LATE</code></a></li>
-</ul>
-</li>
+<li><a href="#_usage">Usage</a></li>
+<li><a href="#_open_questions">Open Questions</a></li>
 <li><a href="#_ptp">PTP</a></li>
 <li><a href="#_huygens">Huygens</a></li>
 <li><a href="#_references">References</a></li>
@@ -96,6 +84,11 @@ Open Questions
 </h3> 
 <p>When pulling the current time and sending it across the network, calling <code>sched_yield()</code> makes a decent attempt at not context switching away between the first and second parts.  However, calling <code>send()</code> on a packet, and it actually being sent, are two different things. <code>sendmsg()</code> accepts a flag <code>SCM_DROP_IF_LATE</code>, which adds a deadline when enqueing a packet into the network stack.  If it can&#8217;t be sent before the deadline, then it will be dropped.  This seems like it would help bound how late a packet could be sent out after the current system time was checked.</p>
 <p>I don&#8217;t see anyone using it for this case.  There&#8217;s very few uses of it at all, only <a href="https://github.com/search?q=SCM_DROP_IF_LATE&amp;type=code">10 hits on github code search</a>.  Historically this has correlated with kernel features that are either partially implemented or have significant limitations.</p>
+<h3 id="_tcp_timestamps" > 
+TCP Timestamps
+</h3> 
+<p>{uri-tcp-high-performance}: <a href="https://datatracker.ietf.org/doc/html/rfc7323" class="bare">https://datatracker.ietf.org/doc/html/rfc7323</a></p>
+<p>{uri-tcp-high-performance}[TCP Extensions for High Performance] defines a TCP extension, TCP Timestamps, which places a timestamp on all packets.  This is used to build Round Trip Time Measurement into the TCP protocol.  While this has utility for TCP itself, this seems quite useful as a way to continuously transparently synchronize your clock with peers.  However, I can&#8217;t seem to find any way that the timestamps are exposed to userspace or eBPF for processing.</p>
 <h2 id="_ptp" > 
 PTP
 </h2>
@@ -103,6 +96,9 @@ PTP
 Huygens
 </h2> 
 <p><a href="#huygens">[huygens]</a> is an NTP-like approach, offering PTP-like time bounds.</p>
+<aside>
+<p>Y. Geng et al., "Exploiting a Natural Network Effect for Scalable, Fine-grained Clock Synchronization," in 15th USENIX Symposium on Networked Systems Design and Implementation (NSDI 18), Renton, WA, Apr. 2018, pp. 81-94. <a href="https://www.usenix.org/conference/nsdi18/presentation/geng">[Online]</a>.</p>
+</aside>
 <h2 id="_references" > 
 References
 </h2> 
