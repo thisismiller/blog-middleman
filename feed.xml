@@ -2,7 +2,7 @@
 <feed xmlsn="http://www.w3.org/2005/Atom">
   <title>Transactional</title>
   <link href="https://transactional.blog/" />
-  <updated>2022-06-05T09:37:50Z</updated>
+  <updated>2022-06-05T09:47:03Z</updated>
   <id>https://transactional.blog/</id>
   <icon>/favicon.ico</icon>
 
@@ -14,6 +14,16 @@
     <updated>2022-06-05T00:00:00Z</updated>
     <summary><div id="preamble">
   <p>A reminder that macOS does not respect the usual ways of making data durable on disk.</p>
+</div></summary>
+  </entry>
+  <entry>
+    <title>Database TLS Implementations: A Survey</title>
+    <link href="/blog/2022-database-tls-survey.html" />
+    <id>/blog/2022-database-tls-survey.html</id>
+    <category term="blog" />
+    <updated>2022-03-21T00:00:00Z</updated>
+    <summary><div id="preamble">
+  <p>An enumeration of which databases are using which TLS implementations.</p>
 </div></summary>
   </entry>
   <entry>
