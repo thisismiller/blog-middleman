@@ -107,11 +107,11 @@ I asked ScyllaDB developers about their (unusual) choice of GnuTLS, and was told
 
 If you're here to decide what TLS implementation you should use when developing your own database, then my advice would be:
 
-- If available, use your RPC/network/eventloop provider's TLS implementation (e.g. ASIO's TLS support[^1], netty's SSL).
-- If available, you should use your language's native TLS implementation (e.g. java => JDK, golang => crypto/tls).
-- Otherwise, code against {uri-libtls-tutorial}[libtls], using https://www.libressl.org/[LibreSSL].
-   - Once your project is mature enough that you care about LibreSSL benchmarking worse than OpenSSL, switch to {uri-libretls}[libretls].
-- If you must directly use OpenSSL, using {uri-boringssl}[BoringSSL].
+* If available, use your RPC/network/eventloop provider's TLS implementation (e.g. ASIO's TLS support[^1], netty's SSL).
+* If available, you should use your language's native TLS implementation (e.g. java => JDK, golang => crypto/tls).
+* Otherwise, code against {uri-libtls-tutorial}[libtls], using https://www.libressl.org/[LibreSSL].
+** Once your project is mature enough that you care about LibreSSL benchmarking worse than OpenSSL, switch to {uri-libretls}[libretls].
+* If you must directly use OpenSSL, using {uri-boringssl}[BoringSSL].
 
 ****
 [^1]: And consider paying for WolfSSL over using OpenSSL as the ASIO TLS implementation.
