@@ -1,0 +1,120 @@
+= Database TLS Implementations: A Survey
+:revdate: 2022-03-21
+:toc: preamble
+
+An enumeration of which databases are using which TLS implementations.
+
+== Survey
+
+This table was constructed out of manual review.  In each codebase, I tried (via searching) to differentiate OpenSSL from its forks (LibreSSL or BoringSSL).
+
+[cols="1,1,1"]
+|===
+| Database | TLS provider | Source
+
+| MySQL
+| OpenSSL
+| https://github.com/mysql/mysql-server/blob/6846e6b2f72931991cc9fd589dc9946ea2ab58c9/cmake/ssl.cmake[ssl.cmake]
+  https://github.com/mysql/mysql-server/blob/6846e6b2f72931991cc9fd589dc9946ea2ab58c9/packaging/rpm-fedora/mysql.spec.in#L84[rpm spec]
+
+| PostreSQL
+| OpenSSL
+| https://src.fedoraproject.org/rpms/postgresql/blob/rawhide/f/postgresql.spec#_150[rpm spec]
+
+| MongoDB
+| OpenSSL (via ASIO)
+| https://github.com/mongodb/mongo/blob/6dd404e028547a29c21b047c2d91ed90ebb1edfb/SConstruct#L4115[SConstruct]
+
+| Redis
+| OpenSSL  
+| https://github.com/redis/redis/blob/e88f6acb94c77c9a5b81f0b2a8bd132b2a5c3d3c/src/Makefile#L270[Makefile]
+
+| Elasticsearch
+| JDK
+| https://sourcegraph.com/github.com/elastic/elasticsearch@fc5a820da9d9b8ad4c885c6d90ce72363632088a/-/blob/libs/ssl-config/src/main/java/org/elasticsearch/common/ssl/SslConfiguration.java?L127&subtree=true[SslConfiguration.java]
+
+| Cassandra
+| OpenSSL, JDK fallback (via netty)
+| https://github.com/apache/cassandra/blob/f5fb1b0bd32b5dc7da13ec66d43acbdad7fe9dbf/src/java/org/apache/cassandra/net/SocketFactory.java#L217[SocketFactory.java]
+  https://netty.io/wiki/requirements-for-4.x.html[Netty docs]
+
+| MariaDB
+| WolfSSL
+| https://github.com/MariaDB/server/blob/b5852ffbeebc3000982988383daeefb0549e058a/cmake/ssl.cmake#L17[ssl.cmake]
+
+| Neo4j
+| JDK (via jetty)
+| https://github.com/neo4j/neo4j/blob/37fc172b19a212358bad4a5145ef3cfa1835f9c1/community/server/src/main/java/org/neo4j/server/security/ssl/SslSocketConnectorFactory.java#L107[SslSocketConnectorFactory]
+
+| InfluxDB
+| crypto/tls (via net/http/server)
+| https://github.com/influxdata/influxdb/blob/2c930fd127cb45e22cc2088d67bf4dca71b53e27/cmd/influxd/launcher/launcher.go#L1169[launcher.go]
+
+| Couchbase
+| OpenSSL
+| https://github.com/couchbase/kv_engine/blob/6c2cdfae95533cde0528e68f8a6ce90ee67eaaf5/include/memcached/openssl.h[openssl.h]
+
+| Realm
+| OpenSSL
+| https://github.com/realm/realm-core/blob/6f70edf166ae96aedc206fabe82aa0b968a79dc8/CMakeLists.txt#L221[CMakeLists.txt]
+
+| CockroachDB
+| crypto/tls
+| https://github.com/cockroachdb/cockroach/blob/c5ca3a63eb7770d494a831839ac8043fe7fbaf4e/pkg/security/tls.go#L14[tls.go]
+
+| RiakKV
+| OpenSSL (via OTP, LibreSSL supported)
+| https://github.com/basho/riak_kv/blob/aeef1591704d32230b773d952a2f1543cbfa1889/src/riak_kv_ttaaefs_manager.erl#L161[riak_kv_ttaaefs_manager.erl]
+  https://github.com/erlang/otp/blob/d5ee0b4e6f436041b82f76ca5e24e39d8b153f66/lib/crypto/configure.ac[configure.ac]
+
+| ArangoDB
+| OpenSSL
+| https://github.com/arangodb/arangodb/blob/104098f63cb7cc6be54f0b9457bafa1ded0ca511/CMakeLists.txt#L1127[build system]
+
+| ScyllaDB
+| GnuTLS
+| https://github.com/scylladb/seastar/blob/master/cmake/FindGnuTLS.cmake[FindGnuTLS.cmake]
+
+| TiDB
+| crypto/tls
+| https://github.com/pingcap/tidb/blob/master/server/conn.go#L175[source code]
+
+| Yugabyte
+| OpenSSL
+| https://github.com/yugabyte/yugabyte-db/blob/998cbcfe8dd817874802b186d7301cd3f2f326b0/cmake_modules/YugabyteFindThirdParty.cmake#L37[build system]
+
+| FoundationDB
+| BoringSSL
+| https://github.com/FoundationDB/fdb-build-support/blob/a27a4dc026ec55574efbc78a0f887efcae0dab03/docker/centos8/Dockerfile#L210[Dockerfile]
+
+|===
+
+== Thoughts
+
+:uri-netty-tls: https://netty.io/wiki/requirements-for-4.x.html#transport-security-tls
+
+OpenSSL, and not one of its forks, is still by far the most common choice.  Some of its usage is transitive (via netty or asio), but some comparitivel newer databases have still directly coded their TLS implementation against OpenSSQL.  LibreSSL removed FIPS and droped optimized assembly routines, so I'm not surprised it hasn't seen adoption, but I would have expected more BoringSSL usage.
+
+I'm not a Java or Go person, so I learned as part of this that they have their own bespoke TLS implementations.  Go wanting to avoid a C dependency tracks with the overall distaste for `cgo` that I've seen.  I'm a bit surprised by netty preferring OpenSSL over JDK's own TLS, but they do {uri-netty-tls}[have their reasons].
+
+I asked ScyllaDB developers about their (unusual) choice of GnuTLS, and was told that the motivation was due to concerns about OpenSSL's code quality and maintenance.  Which, as the years unfolded, turned out to be an incredibly wise decision at the time.
+
+== Advice
+
+:uri-libtls-tutorial: https://github.com/bob-beck/libtls/blob/master/TUTORIAL.md
+:uri-libretls: https://git.causal.agency/libretls/
+:uri-boringssl: https://boringssl.googlesource.com/boringssl/
+
+If you're here to decide what TLS implementation you should use when developing your own database, then my advice would be:
+
+- If available, use your RPC/network/eventloop provider's TLS implementation (e.g. ASIO's TLS support[^1], netty's SSL).
+- If available, you should use your language's native TLS implementation (e.g. java => JDK, golang => crypto/tls).
+- Otherwise, code against {uri-libtls-tutorial}[libtls], using https://www.libressl.org/[LibreSSL].
+   - Once your project is mature enough that you care about LibreSSL benchmarking worse than OpenSSL, switch to {uri-libretls}[libretls].
+- If you must directly use OpenSSL, using {uri-boringssl}[BoringSSL].
+
+****
+[^1]: And consider paying for WolfSSL over using OpenSSL as the ASIO TLS implementation.
+****
+
+(There exist other implementations of the libtls api (github:michaelforney/libtls-bearssl[], github:mirleft/libnqsb-tls[]), but I'm not sure when I'd specifically recommend using them.  BearSSL might be a good choice for embedded platforms if you don't have the budget to pay for WolfSSL.  Not Quite So Broken might only be of interest if there's no possibility of ever patching a future TLS vulnerability?)
