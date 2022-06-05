@@ -38,7 +38,7 @@ activate :blog do |blog|
   blog.summary_generator = Proc.new { |article, rendered, length, ellipsis|
     f = Nokogiri::HTML(rendered).at('body > #preamble')
     if f
-      f.to_html
+      f.children.map(&:to_html).join()
     else
       Nokogiri::HTML(rendered).at('body > p')&.to_html
     end
