@@ -3,13 +3,13 @@ $code-font: 'Inconsolata', monospace
 
 body
   display: grid
-  grid-template-columns: 1fr fit-content(200px) 10px 700px 10px minmax(200px, 300px) 1fr
+  grid-template-columns: 1fr [nav] fit-content(200px) 10px [content] 700px 10px [sidenotes] minmax(200px, 300px) 1fr
   font-family: $text-font
   align-items: start
   background-color: #f8f8f8
 
   > *
-    grid-column: 4
+    grid-column: content
 
 h1
   text-align: center
@@ -26,9 +26,83 @@ code
   font-family: $code-font
   font-size: 90%
 
+table
+  background: #fff
+  margin-bottom: 1.25em
+  border: 1px solid #dedede
+  word-wrap: normal
+
+  thead, tfoot
+    background: #f7f8f7
+
+  thead tr
+    th, td
+      padding: 0.5em 0.625em 0.625em
+      font-size: inherit
+      color: rgba(0, 0, 0, 0.8)
+      text-align: left
+
+  tfoot tr
+    th, td
+      padding: 0.5em 0.625em 0.625em
+      font-size: inherit
+      color: rgba(0, 0, 0, 0.8)
+      text-align: left
+
+  tr
+    th, td
+      padding: 0.5625em 0.625em
+      font-size: inherit
+      color: rgba(0, 0, 0, 0.8)
+
+    &.even, &.alt
+      background: #f8f8f7
+
+  thead tr th, tfoot tr th, tbody tr td, tr td, tfoot tr td
+    line-height: 1.6
+
+th.halign-left, td.halign-left
+  text-align: left
+
+th.halign-right, td.halign-right
+  text-align: right
+
+th.halign-center, td.halign-center
+  text-align: center
+
+th.valign-top, td.valign-top
+  vertical-align: top
+
+th.valign-bottom, td.valign-bottom
+  vertical-align: bottom
+
+th.valign-middle, td.valign-middle
+  vertical-align: middle
+
+table
+  thead th, tfoot th
+    font-weight: bold
+
+tbody tr th
+  background: #f7f8f7
+  color: rgba(0, 0, 0, 0.8)
+  font-weight: bold
+
+  p
+    color: rgba(0, 0, 0, 0.8)
+    font-weight: bold
+
+tfoot tr th
+  color: rgba(0, 0, 0, 0.8)
+  font-weight: bold
+
+  p
+    color: rgba(0, 0, 0, 0.8)
+    font-weight: bold
+
 @media (min-width: 1200px)
   .toc
-    grid-column: 2
+    grid-column: nav
     position: sticky
     align-self: start
     top: 0
@@ -51,7 +125,7 @@ code
 
 @media (max-width: 1000px)
   aside
-    grid-column: 4
+    grid-column: content
     font-size: 80%
 
   aside p
@@ -59,7 +133,7 @@ code
 
 @media (min-width: 1000px)
   aside
-    grid-column: 6
+    grid-column: sidenotes
     padding-right: 1rem
     margin-bottom: 0
     font-size: 80%
