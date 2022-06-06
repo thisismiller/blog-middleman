@@ -1,5 +1,6 @@
 = Time Synchronization
 :page-date: 2022-02-22
 :page-layout: index
+:page-hidden: true
 
 A collection of notes and links from looking at projects and papers on time synchronization.
