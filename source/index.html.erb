@@ -1,6 +1,6 @@
 ---
 title: transactional.blog
-no_title: true
+style: index
 ---
 
 <% category_shown = blog.articles
@@ -8,16 +8,49 @@ no_title: true
   .select {|a| !a.path.end_with? 'index.html'}
   .map {|a| a.data.category} %>
 
+<h2>Blog</h2>
+
+<p>Brief and shallow thoughts on topics.</p>
+
 <% blog.articles
   .select {|a| (@app.environment? :development) || !a.data.hidden}
-  .select {|a| (a.data.category == 'blog') ||
+  .select {|a| (a.data.category == 'blog')}
+  .sort_by {|a| a.date}
+  .reverse
+  .each do |article| %>
+  <div class="article">
+    <div class="heading">
+      <span class="title"><h3><a href="<%= article.url %>"><%= article.title %></a></h3></span>
+      <span class="date"><% if article.data.hidden %>Hidden <%end%><%= article.date.strftime("%Y-%m-%d") %></span>
+      <div style="clear:both;"></div>
+    </div>
+    <div class="summary">
+      <%= article.summary %>
+    </div>
+  </div>
+<% end %>
+</div>
+
+<h2>Notes</h2>
+
+<p>Multi-page and deeper write-ups on topics.</p>
+
+<% blog.articles
+  .select {|a| (@app.environment? :development) || !a.data.hidden}
+  .select {|a| (a.data.category != 'blog') &&
                ((a.path.end_with? 'index.html') &&
                 (category_shown.include? a.data.category))}
   .sort_by {|a| a.date}
   .reverse
   .each do |article| %>
-  <div class="chapter">
-    <h3><a href="<%= article.url %>"><%= article.title %></a></h5>
-    <%= article.summary %>
+  <div class="article">
+    <div class="heading">
+      <span class="title"><h3><a href="<%= article.url %>"><%= article.title %></a></h3></span>
+      <span class="date"><% if article.data.hidden %>Hidden <%end%><%= article.date.strftime("%Y-%m-%d") %></span>
+      <div style="clear:both;"></div>
+    </div>
+    <div class="summary">
+      <%= article.summary %>
+    </div>
   </div>
 <% end %>

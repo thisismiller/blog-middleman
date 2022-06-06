@@ -7,7 +7,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title><%= current_page.data.title || category || "Index" %></title>
-    <%= stylesheet_link_tag (current_page.data.style || "post") %>
+    <%= stylesheet_link_tag (current_page.data.style || "index") %>
     <%= javascript_include_tag "site" %>
   </head>
   <body>
@@ -22,9 +22,13 @@
   .select {|a| (@app.environment? :development) || !a.data.hidden}
   .sort_by {|a| a.data.order.to_i}
   .each do |article| %>
-  <div class="chapter">
-    <h3><a href="<%= article.url %>"><%= article.title %></a></h5>
-    <%= article.summary %>
+  <div class="article">
+    <span class="title"><h3><a href="<%= article.url %>"><%= article.title %></a></h3></span>
+    <span class="date"><% if article.data.hidden %>Hidden<%end%></span>
+    <div style="clear:both;"></div>
+    <div class="summary">
+      <%= article.summary %>
+    </div>
   </div>
 <% end %>
 

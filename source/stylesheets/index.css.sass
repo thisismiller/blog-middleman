@@ -1,0 +1,39 @@
+$text-font: 'Open Sans', sans-serif
+$code-font: 'Inconsolata', monospace
+
+body
+  display: grid
+  grid-template-columns: 1fr [nav] fit-content(200px) 10px [content] 700px 10px [sidenotes] minmax(200px, 300px) 1fr
+  font-family: $text-font
+  align-items: start
+  background-color: #f8f8f8
+
+  > *
+    grid-column: content
+
+h1
+  text-align: center
+
+p, ol
+  margin: 0em 0em
+  margin-top: 0.5em
+  margin-bottom: 0.5em
+  line-height: 1.5em
+  orphans: 3
+  color: #101010
+
+code
+  font-family: $code-font
+  font-size: 90%
+
+.article
+    .heading
+        margin-top: 10px
+    .title
+        float: left
+    .date
+        float: right
+        margin-top: 20px
+        color: #606060
+    .summary
+        float: none

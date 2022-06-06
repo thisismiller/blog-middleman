@@ -43,3 +43,10 @@ code {
 pre {
   margin-left: 4em;
 }
+
+.title {
+  float:left;
+}
+.date {
+  float: right;
+}
