@@ -3,7 +3,6 @@ $code-font: 'Inconsolata', monospace
 
 body
   display: grid
-  grid-template-columns: 1fr [nav] fit-content(200px) 10px [content] 700px 10px [sidenotes] minmax(200px, 300px) 1fr
   font-family: $text-font
   align-items: start
   background-color: #f8f8f8
@@ -100,7 +99,37 @@ tfoot tr th
     color: rgba(0, 0, 0, 0.8)
     font-weight: bold
 
-@media (min-width: 1200px)
+@media (max-width: 900px)
+  body
+    grid-template-columns: 1fr [nav] 0px 10px [content] 700px 10px [sidenotes] 0px 1fr
+
+  aside
+    grid-column: content
+    font-size: 80%
+
+  aside p
+    color: #404040 !important
+
+@media (min-width: 900px)
+
+  aside
+    grid-column: sidenotes
+    padding-right: 1rem
+    margin-bottom: 0
+    font-size: 80%
+    height: 0px
+
+  aside p
+    color: #404040 !important
+
+@media (min-width: 900px) and (max-width: 1100px)
+  body
+    grid-template-columns: 1fr [nav] 0px 10px [content] 700px 10px [sidenotes] minmax(200px, 300px) 1fr
+
+@media (min-width: 1100px)
+  body
+    grid-template-columns: 1fr [nav] fit-content(200px) 10px [content] 700px 10px [sidenotes] minmax(200px, 300px) 1fr
+
   .toc
     grid-column: nav
     position: sticky
@@ -122,24 +151,3 @@ tfoot tr th
 
   .toc li
     padding-top: 5px
-
-@media (max-width: 1000px)
-  aside
-    grid-column: content
-    font-size: 80%
-
-  aside p
-    color: #404040 !important
-
-@media (min-width: 1000px)
-  aside
-    grid-column: sidenotes
-    padding-right: 1rem
-    margin-bottom: 0
-    font-size: 80%
-    height: 0px
-    width: 300px
-
-  aside p
-    color: #404040 !important
-
