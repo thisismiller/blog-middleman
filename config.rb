@@ -68,14 +68,16 @@ ignore /.*\.swp/
 # Build-specific configuration
 # https://middlemanapp.com/advanced/configuration/#environment-specific-settings
 
+require 'terser'
+
 configure :ghpages do
   set :http_prefix, "/blog-middleman"
   activate :minify_css
-  activate :minify_javascript
+  activate :minify_javascript, compressor: Terser.new
 end
 
 configure :transactionalblog do
   set :http_prefix, "/"
   activate :minify_css
-  activate :minify_javascript
+  activate :minify_javascript, compressor: Terser.new
 end
