@@ -1,0 +1,1 @@
+function tableToData(t){var e=$(`table#${t} tr`).get().map((function(t){return $(t).find("th").get().map((function(t){return $(t).text()})).slice(0,3)}))[0];return $(`table#${t} tr`).get().map((function(t){return Object.fromEntries(zip(e,$(t).find("td").get().map((function(t){return $(t).text()})).slice(0,3)))})).slice(1)}const zip=(t,e)=>t.map(((t,n)=>[t,e[n]]));

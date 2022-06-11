@@ -2,7 +2,7 @@
 <feed xmlsn="http://www.w3.org/2005/Atom">
   <title>Transactional</title>
   <link href="https://transactional.blog/" />
-  <updated>2022-06-05T09:51:50Z</updated>
+  <updated>2022-06-11T10:29:13Z</updated>
   <id>https://transactional.blog/</id>
   <icon>/favicon.ico</icon>
 
@@ -12,9 +12,9 @@
     <id>/blog/2022-darwins-deceptive-durability.html</id>
     <category term="blog" />
     <updated>2022-06-05T00:00:00Z</updated>
-    <summary><div id="preamble">
+    <summary>
   <p>A reminder that macOS does not respect the usual ways of making data durable on disk.</p>
-</div></summary>
+</summary>
   </entry>
   <entry>
     <title>Database TLS Implementations: A Survey</title>
@@ -22,9 +22,9 @@
     <id>/blog/2022-database-tls-survey.html</id>
     <category term="blog" />
     <updated>2022-03-21T00:00:00Z</updated>
-    <summary><div id="preamble">
-  <p>An enumeration of which databases are using which TLS implementations.</p>
-</div></summary>
+    <summary>
+  <p>A popularity-based sampling of which databases are using which TLS implementations.</p>
+</summary>
   </entry>
   <entry>
     <title>Simulation Testing</title>
@@ -35,22 +35,14 @@
     <summary><p>Simulation testing is simulating a distributed cluster of machines and processes entirely within a single local process.  This permits comprehensive testing of complex systems through fuzzed fault injection.  Single process execution allows for simulation to be deterministic, thus greatly improving debuggablity of complex failures.</p></summary>
   </entry>
   <entry>
-    <title>Time Synchronization</title>
-    <link href="/timesync/" />
-    <id>/timesync/</id>
-    <category term="timesync" />
-    <updated>2022-02-22</updated>
-    <summary><p>A collection of notes and links from looking at projects and papers on time synchronization.</p></summary>
-  </entry>
-  <entry>
     <title>BUGGIFY</title>
     <link href="/simulation/buggify.html" />
     <id>/simulation/buggify.html</id>
     <category term="simulation" />
     <updated>2021-12-20T00:00:00Z</updated>
-    <summary><div id="preamble">
+    <summary>
   <p>When application code provides high-level fault injection points, fuzzing becomes significantly more effective.</p>
-</div></summary>
+</summary>
   </entry>
 </feed>
 
