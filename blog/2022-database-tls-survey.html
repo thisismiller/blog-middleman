@@ -11,7 +11,7 @@
     <link href="/stylesheets/coderay.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" referrerpolicy="no-referrer"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/g2plot/2.4.19/g2plot.min.js" integrity="sha512-OpJr+ltzajlHXM+/bLHL6CL6kCzAnh0b7yCHnWb1nF1bofEWBnwAA3VtnVXEqROr4Tmet7pSfoEVtK9w88L6Hg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@antv/data-set@0.11.8/build/data-set.js"></script>
+    <script src="https://unpkg.com/dataframe-js@1.4.4/dist/dataframe.min.js" referrerpolicy="no-referrer"></script>
     <script src="/javascripts/site.js"></script>
   </head>
   <body>
@@ -196,28 +196,24 @@ Tabular Results
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">FoundationDB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">BoringSSL</p></td>
-<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">OpenSSL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Supports LibreSSL, BoringSSL, and WolfSSL</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><a href="https://github.com/FoundationDB/fdb-build-support/blob/a27a4dc026ec55574efbc78a0f887efcae0dab03/docker/centos8/Dockerfile#L210">Dockerfile</a></p></td>
 </tr>
 </tbody>
 </table>
 <script type="text/javascript">
 
-const tlsdata = tableToData('tlsdata');
-const ds = new DataSet();
-const dv = ds.createView().source(tlsdata);
-dv.transform({
-  type: 'rename',
-  map: {'TLS Provider': 'tls'},
-}).transform({
-  type: 'aggregate', // 别名summary
-  fields: ['tls'], // 统计字段集
-  operations: ['count'], // 统计操作集
-  as: ['count'], // 存储字段集
-  groupBy: ['tls'], // 分组字段集
-});
-const data = dv.rows;
+const df = new dfjs.DataFrame(tableToData('tlsdata'));
+const df_count = df
+  .rename('TLS Provider', 'tls')
+  .groupBy('tls')
+  .aggregate(x => x.count(), 'count');
+const df_dbs = df
+  .rename('TLS Provider', 'tls')
+  .groupBy('tls')
+  .aggregate(x => x.select('Database').toArray().join(', '), 'tooltip');
+const data = df_count.innerJoin(df_dbs, 'tls').toCollection();
 
 var chart = new G2Plot.Pie('chart', {
   data,
