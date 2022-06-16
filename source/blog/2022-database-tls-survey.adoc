@@ -137,8 +137,8 @@ This table was constructed out of manual review.  In each codebase, I tried (via
 | https://github.com/yugabyte/yugabyte-db/blob/998cbcfe8dd817874802b186d7301cd3f2f326b0/cmake_modules/YugabyteFindThirdParty.cmake#L37[build system]
 
 | FoundationDB
-| BoringSSL
-|
+| OpenSSL
+| Supports LibreSSL, BoringSSL, and WolfSSL
 | https://github.com/FoundationDB/fdb-build-support/blob/a27a4dc026ec55574efbc78a0f887efcae0dab03/docker/centos8/Dockerfile#L210[Dockerfile]
 
 |===
@@ -146,20 +146,16 @@ This table was constructed out of manual review.  In each codebase, I tried (via
 ++++
 <script type="text/javascript">
 
-const tlsdata = tableToData('tlsdata');
-const ds = new DataSet();
-const dv = ds.createView().source(tlsdata);
-dv.transform({
-  type: 'rename',
-  map: {'TLS Provider': 'tls'},
-}).transform({
-  type: 'aggregate', // 别名summary
-  fields: ['tls'], // 统计字段集
-  operations: ['count'], // 统计操作集
-  as: ['count'], // 存储字段集
-  groupBy: ['tls'], // 分组字段集
-});
-const data = dv.rows;
+const df = new dfjs.DataFrame(tableToData('tlsdata'));
+const df_count = df
+  .rename('TLS Provider', 'tls')
+  .groupBy('tls')
+  .aggregate(x => x.count(), 'count');
+const df_dbs = df
+  .rename('TLS Provider', 'tls')
+  .groupBy('tls')
+  .aggregate(x => x.select('Database').toArray().join(', '), 'tooltip');
+const data = df_count.innerJoin(df_dbs, 'tls').toCollection();
 
 var chart = new G2Plot.Pie('chart', {
   data,
