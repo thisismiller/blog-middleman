@@ -15,8 +15,16 @@
     <%= javascript_include_tag "site" %>
   </head>
   <body>
+    <div class="header">
+    </div>
     <h1><%= if current_page.data.no_title then "" else current_page.data.title end %></h1>
     <%= yield %>
+    <hr />
+    <!-- TODO: consider https://utteranc.es/ for in-page comments. -->
+    <% if !current_page.data.nofooter %>
+      <% category_heading = if current_page.data.category then current_page.data.category + ": " else "" end .titleize %>
+      <p><a href="https://discu.eu/?q=<%= "https://transactional.blog" + current_page.url %>&submit_title=<%= category_heading + current_page.data.title %>">See discussion of this page on Reddit, HN, lobsters</a>.</p>
+    <% end %>
     <% if environment == :transactionalblog %>
     <script data-goatcounter="https://transactionalblog.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>

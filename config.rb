@@ -1,6 +1,8 @@
 # Activate and configure extensions
 # https://middlemanapp.com/advanced/configuration/#configuring-extensions
 
+require_relative 'asciidoc_extensions/string_ext'
+
 activate :autoprefixer do |prefix|
   prefix.browsers = "last 2 versions"
 end
