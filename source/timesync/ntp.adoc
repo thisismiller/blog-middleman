@@ -54,6 +54,10 @@ NTP will either offer your time in milliseconds or nanoseconds.  Some NTP implem
 
 It's possible that ntp_adjtime will fail for a brief window as the clock temporarily loses synchronization.  During this time, you can continue to advance the clock and `maxerror` manually, and time out after a short window.
 
+=== https://github.com/rust-lang/rust/blob/5d8767cb229b097fedb1dd4bd9420d463c37774f/library/std/src/time.rs#L252[[Rust\]] CLOCK_MONOTONIC goes backwards
+
+Also just be aware that monotonic clocks aren't impervious to backward jumps.  Widely deployed programs (firefox) and libraries (rust stdlib) have noticed that monotonic clocks are not as monotonic as they're supposed to be.
+
 == Open Questions
 
 === `SCM_DROP_IF_LATE`
