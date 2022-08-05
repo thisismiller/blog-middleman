@@ -1,5 +1,6 @@
 = Darwin's Deceptive Durability
 :revdate: 2022-06-05
+:page-last_updated: 2022-08-03
 
 A reminder that macOS does not respect the usual ways of making data durable on disk.
 
@@ -43,3 +44,9 @@ One must use O_FULLSYNC instead.
 ++++
 <blockquote class="twitter-tweet"><p lang="en" dir="ltr">The underlying libuv call for fdatasync() here is actually using F_FULLFSYNC on macOS (I contributed that at the time to libuv).<br><br>You can see the difference between FDATASYNC + O_DIRECT and O_DSYNC + O_DIRECT.<br><br>And the latter, on macOS, is no different from only O_DIRECT (!)<br><br>In other words, O_DSYNC on macOS also doesn&#39;t flush past the disk&#39;s own cache.<br><br>It&#39;s as durable as fcntl(fd, F_NOCACHE, 1). i.e. Not durable at all. ;)</p>&mdash; Joran Dirk Greef (@jorandirkgreef) <a href="https://twitter.com/jorandirkgreef/status/1532317885556830211?ref_src=twsrc%5Etfw">June 2, 2022</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 ++++
+
+== SQLite is not durable
+
+:uri-bonsaidb-apple-acid: https://bonsaidb.io/blog/acid-on-apple/
+
+As {uri-bonsaidb-apple-acid}[noted by BonsaiDB], Apple patches their installed version of SQLite to use the less durable method of getting data on disk.  SQLite compiled by any entity other than Apple is still durable on darwin.
