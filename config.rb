@@ -37,6 +37,7 @@ activate :blog do |blog|
   blog.sources = "{category}/{title}.html"
   blog.permalink = "{category}/{title}.html"
   blog.default_extension = ".adoc"
+  blog.summary_length = nil
   blog.summary_generator = Proc.new { |article, rendered, length, ellipsis|
     f = Nokogiri::HTML(rendered).at('body > #preamble')
     if f
