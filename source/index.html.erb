@@ -11,8 +11,6 @@ nofooter: true
 
 <h2>Blog</h2>
 
-<p>Brief and shallow thoughts on topics.</p>
-
 <% blog.articles
   .select {|a| (@app.environment? :development) || !a.data.hidden}
   .select {|a| (a.data.category == 'blog')}
@@ -33,8 +31,6 @@ nofooter: true
 </div>
 
 <h2>Notes</h2>
-
-<p>Multi-page and deeper write-ups on topics.</p>
 
 <% blog.articles
   .select {|a| (@app.environment? :development) || !a.data.hidden}
