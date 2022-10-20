@@ -20,6 +20,7 @@ class ImageDirPerAsciidoc < Middleman::Extension
   def manipulate_resource_list(resources)
     resources.each do |resource|
       if resource.source_file.end_with? '.adoc'
+        resource.options[:renderer_options][:attributes]['icons'] = 'font'
         resource.options[:renderer_options][:attributes]['imagesdir'] = ::File.join(@app.config[:asciidoc][:attributes]['imagesdir'].chomp('@'), resource.page_id + "@")
         resource.options[:renderer_options][:attributes]['imagesoutdir'] = ::File.join(@app.config[:asciidoc][:attributes]['site-destination'], @app.config[:images_dir], resource.page_id + "@")
       end

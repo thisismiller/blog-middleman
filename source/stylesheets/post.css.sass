@@ -102,6 +102,62 @@ tfoot tr th
     color: rgba(0, 0, 0, 0.8)
     font-weight: bold
 
+// Callouts
+
+.conum[data-value]
+  display: inline-block
+  color: rgba(0, 0, 0, 0.8)
+  background: #fff
+  border-radius: 50%
+  text-align: center
+  font-size: 0.75em
+  width: 1em
+  height: 1em
+  line-height: 1em
+  font-family: "Open Sans", sans-serif
+  font-style: normal
+  font-weight: bold
+  border: 1px solid
+  border-radius: 100%
+
+  *
+    color: rgba(0, 0, 0, 0.8)
+
+  + b
+    display: none
+
+  &::after
+    content: attr(data-value)
+
+pre .conum[data-value]
+  position: relative
+  top: -0.125em
+
+b.conum *
+  color: inherit !important
+
+.conum:not([data-value]):empty
+  display: none
+
+.literalblock + .colist, .listingblock + .colist
+  margin-top: -0.5em
+
+.colist td:not([class])
+  &:first-child
+    padding: 0.4em 0.75em 0
+    line-height: 1
+    vertical-align: top
+
+    img
+      max-width: none
+
+  &:last-child
+    padding: 0.25em 0
+
+ol arabic
+  list-style-type: decimal
+
+
 @media (max-width: 700px)
   body
     grid-template-columns: [nav] 0px 10px [content] 1fr 10px [sidenotes] 0px
