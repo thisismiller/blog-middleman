@@ -18,13 +18,23 @@
     <div class="header">
     </div>
     <h1><%= if current_page.data.no_title then "" else current_page.data.title end %></h1>
+    <!--
+    # TODO: Improve the styling of this before releasing.
+    <aside style="text-align: right">
+      <% if current_page.data.date then %>
+      <p>Originally posted <%= current_page.data.date.strftime("%Y-%m-%d") %></p>
+      <% end %>
+      <% if current_page.data.last_updated then %>
+      <p>Last updated <%= current_page.data.last_updated %></p>
+      <% end %>
+    </aside>
+    -->
     <%= yield %>
-    <hr />
-    <br />
-    <hr width="100%"/>
-    <br />
     <!-- TODO: consider https://utteranc.es/ for in-page comments. -->
     <% if !current_page.data.nofooter %>
+      <br />
+      <hr width="100%"/>
+      <br />
       <% category_heading = if current_page.data.category then current_page.data.category + ": " else "" end .titleize %>
       <p><a href="https://discu.eu/?q=<%= "https://transactional.blog" + current_page.url %>&submit_title=<%= category_heading + current_page.data.title %>">See discussion of this page on Reddit, HN, and lobsters.</a></p>
     <% end %>
