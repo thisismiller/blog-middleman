@@ -47,6 +47,10 @@ jobs:
       run: |
         curl https://raw.githubusercontent.com/thisismiller/dbdiag/main/ophistory.py -o ophistory
         chmod +x ophistory
+    - name: ls
+      run: |
+        pwd
+        ls
 
     - name: Build Middleman
       run: bundle exec middleman build --verbose --environment=transactionalblog
