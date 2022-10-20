@@ -43,6 +43,10 @@ jobs:
         cd pikchr
         make
         echo "$(pwd)" >> $GITHUB_PATH
+    - name: Install dbdiag
+      run: |
+        curl https://raw.githubusercontent.com/thisismiller/dbdiag/main/ophistory.py -o ophistory
+        chmod +x ophistory
 
     - name: Build Middleman
       run: bundle exec middleman build --verbose --environment=transactionalblog
