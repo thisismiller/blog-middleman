@@ -45,11 +45,11 @@ jobs:
         echo "$(pwd)" >> $GITHUB_PATH
     - name: Install dbdiag
       run: |
-        curl https://raw.githubusercontent.com/thisismiller/dbdiag/main/ophistory.py -o ophistory
+        mkdir dbdiag
+        curl https://raw.githubusercontent.com/thisismiller/dbdiag/main/ophistory.py -o dbdiag/ophistory
+        cd dbdiag
         chmod +x ophistory
-        ls -lh
-        env
-        ophistory --help
+        echo "$(pwd)" >> $GITHUB_PATH
 
     - name: Build Middleman
       run: bundle exec middleman build --verbose --environment=transactionalblog
