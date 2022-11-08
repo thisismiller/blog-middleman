@@ -1,0 +1,116 @@
+= Workloads
+:revdate: 01-03-2022
+:page-order: 13
+:page-hidden: true
+:toc: preamble
+
+Each simulation test has one or more concurrent workloads.  Defining 
+
+== Design
+
+A workload has four phases:
+
+Setup:: Initialize the system under test for this workload.
+
+Run:: Perform this workload's specified task.
+
+Check:: Verify something about the system under test.
+
+Metrics:: Export any metrics recorded for this execution for aggregation and reporting
+
+[source, cpp]
+----
+class Workload {
+ public:
+  virtual future<void> setup(Database& db) { return; }
+  virtual future<void> run(Database& db) { return; }
+  virtual future<void> check(Database& db) { return; }
+  virtual future<vector<Metric>> getMetrics() { return vector<Metric>(); }
+};
+----
+
+=== Property Tests
+
+Property tests assert something about the correctness of the database.
+
+`CycleTest` is a simple yet effective workload which validates transactional consistency, but not durability.  It creates a cycle of key-value pairs in the database by having each value be the key of the next element in the cycle.
+
+[source, cpp]
+----
+future<void> CycleTest::setup(Database& db) {
+    for (int i = 0; i < 100; i++) {
+        co_await db.set( std::to_string(i), std::to_string( (i+1) % 100 ));
+    }
+}
+----
+
+After the cycle is created, the workload spends the majority of its time transactionally switching the order of two nodes in the cycle.
+
+[source, cpp]
+----
+future<void> CycleTest::run(Database& db) {
+    Transaction tr = db.create_transaction();
+    Key k1 = std::to_string(random(0, 100));
+    Key k2 = co_await tr.get(k1);
+    Key k3 = co_await tr.get(k2);
+    Key k4 = co_await tr.get(k3);
+    // Transform 1 -> 2 -> 3 -> 4 into 1 -> 3 -> 2 -> 4.
+    tr.set(k1, k3);
+    tr.set(k3, k2);
+    tr.set(k2, k4);
+    co_await tr.commit();
+}
+----
+
+Once the workload has been stopped, we verify that there's still a 100 node cycle in the database.  If not all operations from a transaction are applied to the database, then either a new (shorter) cycle will be introduced or the cycle will be broken.
+
+[source, cpp]
+----
+future<void> CycleTest::check(Database& db) {
+    const Key firstKey = "0";
+    Key key = firstKey;
+    for (int count = 0; count < 99; count++) {
+        key = co_await db.get(key);
+        // Ensure that the cycle did not become shorter than 100 nodes.
+        if (key == firstKey) throw ConsistencyViolation();
+    }
+    key = co_await db.get(key);
+    // Ensure that the cycle did not become longer than 100 nodes.
+    if (key != firstKey) throw ConsistencyViolation();
+}
+----
+
+
+- IncrementTest
+
+
+
+Property tests can validate any piece of the system.  `BackupToDBCorrectness` defines a test which:
+
+- In setup(), begins taking a backup.
+- In run(), 
+
+- BackupToDBCorrectness
+
+
+=== Nemesis Tests
+
+- Attrition
+- Clogging
+- Swizzled
+- ConfigureDatabase
+
+=== Special Mention
+
+- Fuzz API
+- Quiescense
+
+== Implementation
+
+== Constraints
+
+Workloads that aren't tractable in simulation:
+
+- Workloads that assert operation latency 
+
+- Workloads that assert an amount of work was performed

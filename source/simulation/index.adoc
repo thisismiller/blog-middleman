@@ -3,3 +3,29 @@
 :page-layout: index
 
 Simulation testing is simulating a distributed cluster of machines and processes entirely within a single local process.  This permits comprehensive testing of complex systems through fuzzed fault injection.  Single process execution allows for simulation to be deterministic, thus greatly improving debuggablity of complex failures.
+
+////
+
+# Motivation
+
+# Deterministic Simulation
+## Scheduling
+## Time
+## Mockable External Services: Networking
+## Live External Services: Disks
+## Processes and Machines
+
+# Failure Modeling
+## Networking
+## Disks
+## Processes and Machines
+## Buggify
+
+# Simulation Workloads
+## Property Testing
+## Nemesis Tests
+## Limitations
+   - Quiescence
+   - Performance testing very limited
+
+////

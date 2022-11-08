@@ -1,0 +1,71 @@
+= Scheduling
+:revdate: 20-12-2021
+:page-order: 3
+:page-hidden: true
+:toc: preamble
+
+A random number generator lets it produce random but reproducible schedules of tasks.
+
+The first and most vial requirement for deterministic simulation is to have a
+scheduler that controls and executes units of concurrent work.  With this alone,
+we can build a deterministic simulated program which supports arbitrary
+concurrent computation, but no external system interaction.
+
+== Random Number Generator
+
+Every time that the simulation framework or program must make a choice, it
+derives its decision from the random number generator.  By doing this, starting
+with the same seed will result in the same program execution, every time.  This
+is the one simple rule that provides determinism.
+
+[source,cpp]
+----
+class RNG {
+ public:
+  uint64_t random();
+
+ private:
+  std::mt19937_64 gen64;
+};
+
+extern RNG globalRng;
+----
+
+== Async Framework
+
+:uri-crdb-go-runtime: https://github.com/cockroachdb/cockroach/blob/v22.2.0-beta.4/docs/RFCS/20220602_fine_grained_cpu_attribution.md#design
+:uri-switchto: https://lkml.org/lkml/2020/7/22/1202
+
+Concurrency may be expressed with any form of cooperative scheduling: a language's native async/await
+implementation, a futures or coroutine library, or stateful objects and callbacks (in
+decreasing order of user friendlyness).  Even the proposed
+{uri-switchto}[switchTo/FUTEX_SWAP] for directly scheduling native threads can
+work.  It does not matter what language or library is used; all that matters is
+that you, the developer, are in control of which work runs in what order.[^1]
+
+****
+[^1]: This notably removes Go as an option, as there's no facility offered to a
+Go developer to control how or when goroutines are scheduled for execution.  One
+would need to run a custom patched version of the Go runtime, similar to what
+CockroachDB does for {uri-crdb-go-runtime}[fine-grained CPU attribution].
+****
+
+== The Ready Queue
+
+
+== Scheduling Future Work: sleep()
+
+
+
+== Poor Man's Determinism
+
+:uri-rr-project: https://rr-project.org/
+
+Though the scheduler is the most vital requirement for _deterministic_
+simulation, implementing the rest of this guide will instead provide
+non-deterministic simulation.  Instead, one can attempt to recover the
+deterministic execution by relying on {uri-rr-project}[`rr`], a tool which can
+record the execution of a program and allow that exact execution to be replayed
+any number of times.  `rr` can provide deterministic replay, but will execute
+slower, but has a number of limitations, and won't allow you to recompile for
+printf debugging.
