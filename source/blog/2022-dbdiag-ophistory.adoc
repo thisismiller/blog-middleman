@@ -1,6 +1,5 @@
 = dbdiag: ophistory
 :revdate: 15-10-2022
-:toc: preamble
 :page-hidden: true
 
 A https://docs.asciidoctor.org/diagram-extension/latest/[diagram as text] tool to allow visualizing the concurrent executions of operations.
