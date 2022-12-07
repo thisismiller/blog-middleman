@@ -5,14 +5,14 @@ nofooter: true
 ---
 
 <% category_shown = blog.articles
-  .select {|a| (@app.environment? :development) || !a.data.hidden }
+  .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden }
   .select {|a| !a.path.end_with? 'index.html'}
   .map {|a| a.data.category} %>
 
 <h2>Blog</h2>
 
 <% blog.articles
-  .select {|a| (@app.environment? :development) || !a.data.hidden}
+  .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden}
   .select {|a| (a.data.category == 'blog')}
   .sort_by {|a| a.date}
   .reverse
@@ -33,7 +33,7 @@ nofooter: true
 <h2>Notes</h2>
 
 <% blog.articles
-  .select {|a| (@app.environment? :development) || !a.data.hidden}
+  .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden}
   .select {|a| (a.data.category != 'blog') &&
                ((a.path.end_with? 'index.html') &&
                 (category_shown.include? a.data.category))}

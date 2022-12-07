@@ -10,7 +10,7 @@ layout: none
   <icon>/favicon.ico</icon>
 
 <% blog.articles
-  .select {|a| (@app.environment? :development) || !a.data.hidden}
+  .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden}
   .map {|a| [ a.data.date.is_a?(String) ? Time.zone.parse(a.data.date) : a.data.date, a]}
   .sort_by {|date, a| date}
   .reverse
