@@ -20,9 +20,7 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: site
-
-    - name: LS
-      run: ls
+        path: ./build/
 
     - name: Push to Github Pages
       uses: peaceiris/actions-gh-pages@v3
