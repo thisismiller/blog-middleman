@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    uses: ./github/workflows/middleman.yaml@main
+    uses: .github/workflows/middleman.yaml@main
     with:
       middleman-environment: transactionalblog
     secrets: inherit
