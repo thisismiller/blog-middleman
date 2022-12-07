@@ -9,7 +9,7 @@ jobs:
   build:
     uses: ./.github/workflows/middleman.yaml
     with:
-      middleman-environment: transactionalblog
+      middleman-environment: ghpages
     secrets: inherit
 
   deploy:
