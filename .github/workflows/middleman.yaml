@@ -58,3 +58,10 @@ jobs:
     - name: Build Middleman
       run: bundle exec middleman build --verbose --environment=${{ inputs.middleman-environment }}
 
+    - name: Upload Site Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: site
+        path: ./build/
+        retention-days: 1
+

@@ -16,6 +16,11 @@ jobs:
     needs: build
     runs-on: ubuntu-20.04
     steps:
+    - name: Download Site Artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: site
+
     - name: LS
       run: ls
 
