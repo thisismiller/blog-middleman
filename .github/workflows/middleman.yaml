@@ -1,7 +1,11 @@
 name: middleman
 
 on:
-  push
+  workflow_call:
+    inputs:
+      middleman-environment:
+        required: true
+        type: string
 
 jobs:
   middleman:
@@ -52,11 +56,5 @@ jobs:
         echo "$(pwd)" >> $GITHUB_PATH
 
     - name: Build Middleman
-      run: bundle exec middleman build --verbose --environment=transactionalblog
-
-    - name: Push to Github Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./build
+      run: bundle exec middleman build --verbose --environment=${{ inputs.middleman-environment }}
 
