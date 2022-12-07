@@ -1,0 +1,115 @@
+= Operational Mechanical Sympathy
+:page-hidden: true
+:revdate: 06-02-2022
+:toc: preamble
+:page-order: 1
+
+Databases run on real machines, and aspects of those machines will affect the operation of the database.
+If a database has a better understanding of the machine it is being run on, it can both leverage that for increased performance and caution operators about potential dangers.
+
+== Administrator Feedback
+
+:uri-foundationdb-statusjson: https://apple.github.io/foundationdb/mr-status.html
+:uri-cockroachdb-clusterapi: https://www.cockroachlabs.com/docs/v22.1/cluster-api
+:uri-cassandra-nodetoolstatus: https://docs.datastax.com/en/cassandra-oss/3.0/cassandra/tools/toolsStatus.html
+
+Databases generally offer some way of getting information about the database from the database itself.  This self-reporting can either be as part of a command line program for operators (like {uri-cassandra-nodetoolstatus}[Cassandra's nodetool status]), a special call in the client to fetch a database status export (like {uri-foundationdb-statusjson}[FoundationDB's status json]), or a full REST API (like {uri-cockroachdb-clusterapi}[Cockroach's Cluster API]).  Regardless of mechanism, these offer the ability for administrators to be able to get information from the database about its configuration and internal state.
+
+There's a number of ways that system configuration can affect a user's perception of reliability or performance.
+Thus, it can be wise for the database to audit its environment, and look for misconfigurations or optimizations.
+As it will often be unable to apply the necessary changes itself, the database will need to utilize the self-reporting mechanism to flag misconfigurations that it finds to an administrator that it finds, and provide suggested remediations.
+
+I'd suggest breaking these into two categories: suggestions and cautions.  Cautions would be things that can cause poor database behavior, and an administrator _should_ fix the issue.  Suggestions would be performance tuning hints, but some administrators might wish to ignore or be unable to act on, and that's okay.  The guiding difference in splitting these two apart is it should be reasonable for a low-priority alert to be set on cautions, and not suggestions.
+
+=== CPU
+
+Numa
+
+Thread/core affinity.
+
+SoftIRQ
+
+There's also a number of very well written blog posts about network tuning:
+
+- https://blog.packagecloud.io/monitoring-tuning-linux-networking-stack-receiving-data/[Monitoring and Tuning the Linux Networking Stack: Receiving Data]
+- https://blog.packagecloud.io/monitoring-tuning-linux-networking-stack-sending-data/[Monitoring and Tuning the Linux Networking Stack: Sending Data]
+- http://www.alexonlinux.com/smp-affinity-and-proper-interrupt-handling-in-linux[SMP affinity and proper interrupt handling in Linux]
+- http://www.alexonlinux.com/why-interrupt-affinity-with-multiple-cores-is-not-such-a-good-thing[Why interrupt affinity with multiple cores is not such a good thing]
+- http://www.alexonlinux.com/msi-x-the-right-way-to-spread-interrupt-load[MSI-X – the right way to spread interrupt load]
+
+=== Memory
+
+:uri-hugepage: https://mysqlperf.github.io/mysql/elfremapper/
+
+
+[caution] OOM kill protection
+
+[suggestion] vm.swappiness
+
+[suggestion] Hugepages exist, but they're a huge pain.  See {uri-hugepage}[a post on using hugepages for MySQL].
+
+=== Network
+
+:uri-cloudflare-kernel-bypass: https://blog.cloudflare.com/kernel-bypass/
+
+The file descriptor limit should be raised above the standard 1024, otherwise as soon as \~1000 clients connect to a tigerbeetle instance, it'll start crashlooping.  This can be checked with man:getrlimit[2].
+
+It can be wise to track the latency and throughput for each replica, and make sure that the TCP window sizes are set according to the bandwidth-delay product.  These can be set per-socket via man:setsockopt[2]'s `SO_SNDBUF` and `SO_RCVBUF`.
+
+Warn on high packet loss.
+You can monitor this via `/proc/net/netstat`.
+(With TCP Reno, 1 Gbit/s at 100ms cross-region latency is 100Mb/s at 1e-5% packet loss, 10Mb/s at 0.01% packet loss, and 1Mb/s at 1% packet loss.)
+
+Relatedly strongly consider BBR, which behaves better under packet loss.
+Reading `/proc/sys/net/ipv4/tcp_congestion_control` will result in `bbr` if it's enabled.
+
+You can also pull a lot of information about the current resource usage of a TCP socket via `AF_NETLINK`. (See man:netlink[7] and man:sock_diag[7].
+
+There's a lot of discussion about kernel bypass networking, but the current general industry wisdom seems to be to avoid it.  ScyllaDB doesn't recommend running with DPDK.  Cloudflare {uri-cloudflake-kernel-bypass}[details the deployment and technology limitations] well.
+
+=== Storage
+
+:uri-scylla-xfs: https://www.scylladb.com/2016/02/09/qualifying-filesystems/
+
+ScyllaDB is rather adamant about {uri-scylla-xfs}[XFS being the only permitted filesystem].
+As it's a database written by a bunch of former kernel devs, I trust their judgement on all things kernel-related.
+
+Consider your choices of io scheduler.  If the database already limits to the NVMe or SATA queue depth, then `noop` might be preferable.  If many disk operations are issued, then consider `deadline`.  `cfq` is default, and especially reasonable if the database isn't the only process of importance running (e.g. developer-mode database install).  This likely isn't a large optimization.
+
+Warn when disk is approaching full.
+This is doubly useful when running on SSDs, which can exhibit different performance characteristics as the disks fill up.
+
+== The Cloud
+
+:uri-aws-metadata: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-categories.html
+:uri-azure-metadata: https://docs.microsoft.com/en-us/azure/virtual-machines/windows/instance-metadata-service?tabs=windows
+:uri-gcp-metadata: https://cloud.google.com/compute/docs/metadata/overview
+:uri-oracle-metadata: https://docs.oracle.com/en-us/iaas/Content/Compute/Tasks/gettingmetadata.htm
+
+When running in the cloud, there's a REST metadata service (IMDS) that you can hit to get information about the current instance. All cloud platforms ({uri-aws-metadata}[AWS], {uri-gcp-metadata}[GCP], {uri-azure-metadata}[Azure], and even {uri-oracle-metadata}[Oracle]) offer this on 169.254.169.254. You can use this to automatically configure replication policies, double-check the placement of all the instances (e.g. caution that nodes aren't distributed across AZs in accordance with the policy correctly.), or to auto-detect which cloud platform you're in.
+
+EBS considers anything up to 16K as one IO, so it's to your advantage to try and issue 16KB-sized disk operations when possible. I feel like this also strongly encourages 16KB page sizes on EBS.
+
+== Testing
+
+:uri-hotos21-cores-that-dont-count: https://sigops.org/s/conferences/hotos/2021/papers/hotos21-s01-hochschild.pdf
+:uri-simulation-buggify: /simulation/buggify.html
+
+{uri-simulation-buggify}[BUGGIFY]
+
+RocksDB has had some discussions of defending against and efficiently repairing corruptions:
+Google has had some commentary about defending against bad CPUs:
+{uri-hotos21-cores-that-dont-count}[Cores that don't count]
+
+== Performance
+
+:uri-zero-copy-paxos: https://davecturner.github.io/2017/09/15/zero-copy-paxos.html
+
+If you wanted to go try to really optimize down performance, I'd suggest taking a look at {uri-zero-copy-paxos}[Zero-copy Paxos]. I think in a modern io_uring version of this, you might be able to do the entire write to disk, fsync, and ack all without touching userspace via linked SQEs.
+
+== Productionization
+
+- Kubernetes operator
+- Prometheous & grafana integration (OpenTelemetry support?)
+- Alerting/dashboarding guidance
+  - cockroach's production readiness checklist is good here
