@@ -1,8 +1,54 @@
 = dbdiag: ophistory
 :revdate: 15-10-2022
 :page-hidden: true
+:page-features: python_wasm, alpine
 
-A https://docs.asciidoctor.org/diagram-extension/latest/[diagram as text] tool to allow visualizing the concurrent executions of operations.
+Anouncing github:thisismiller/dbdiag[] now offering `ophistory`, a https://docs.asciidoctor.org/diagram-extension/latest/[diagram as text] tool to allow visualizing the concurrent executions of operations.
+
+== Demo
+
+++++
+<script>
+var getPyodide = (function PyodideFetcher() {
+    var result;
+    return async function() {
+      if (result) {
+        return result;
+      }
+      let pyodide = await loadPyodide();
+      pyodide.runPython('__name__ = "pyodide"\n' + (await (await fetch("https://raw.githubusercontent.com/thisismiller/dbdiag/main/ophistory.py")).text()));
+      result = pyodide;
+      return pyodide;
+    };
+})();
+
+async function ops_to_svg(ops) {
+  try {
+    let fn = (await getPyodide()).globals.get("input_to_output");
+    let ret = fn(ops);
+    fn.destroy();
+  return ret;
+  } catch (e) {
+    return "<p>" + e.toString() + "</p>";
+  }
+};
+</script>
+
+<div x-data="{ ops: 'Actor: Start A\nActor: End A' }">
+<table>
+  <tr>
+    <td>
+      <textarea x-model.debounce="ops" rows=10 cols=20 x-bind:placeholder="ops">
+      </textarea>
+    </td>
+    <td>
+      <span x-html="await ops_to_svg(ops)">
+      </span>
+    </td>
+  </tr>
+</table>
+</div>
+++++
 
 == Examples
 
