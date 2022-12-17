@@ -1,9 +1,8 @@
 = dbdiag: ophistory
-:revdate: 15-10-2022
-:page-hidden: true
+:revdate: 16-12-2022
 :page-features: python_wasm, alpine
 
-Anouncing github:thisismiller/dbdiag[] now offering `ophistory`, a https://docs.asciidoctor.org/diagram-extension/latest/[diagram as text] tool to allow visualizing the concurrent executions of operations.
+Anouncing github:thisismiller/dbdiag[]'s `ophistory` script, a https://docs.asciidoctor.org/diagram-extension/latest/[diagram as text] tool to allow visualizing the concurrent executions of operations.
 
 == Demo
 
