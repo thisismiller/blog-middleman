@@ -20,7 +20,8 @@ nofooter: true
   <div class="article">
     <div class="heading">
       <span class="title"><h3><a href="<%= article.url %>"><%= article.title %></a></h3></span>
-      <span class="date"><% if article.data.hidden %>Hidden <%end%><%= article.date.strftime("%Y-%m-%d") %></span>
+      <span class="date"><%= article.date.strftime("%Y-%m-%d") %></span>
+      <% if article.data.hidden %><span class="attributes">Hidden</span><%end%>
       <div style="clear:both;"></div>
     </div>
     <div class="summary">

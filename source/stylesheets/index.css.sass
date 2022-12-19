@@ -8,21 +8,12 @@ body
   display: grid
   font-family: $text-font
   align-items: start
-  background-color: #f8f8f8
 
   > *
     grid-column: content
 
 h1
   text-align: center
-
-p, ol
-  margin: 0em 0em
-  margin-top: 0.5em
-  margin-bottom: 0.5em
-  line-height: 1.5em
-  orphans: 3
-  color: #101010
 
 code
   font-family: $code-font
@@ -35,17 +26,34 @@ code
 .indent-2
   margin-left: 4em
 
+h2
+  margin-top: 0.5em
+  margin-bottom: 1em
+h3
+  margin-top: 0em
+  margin-bottom: 0em
+p
+  margin-bottom: 0px
+  margin-top: 0px
+
 .article
-    .heading
-        margin-top: 10px
-    .title
-        float: left
-    .date
-        float: right
-        margin-top: 20px
-        color: #606060
-    .summary
-        float: none
+  margin-bottom: 1.5em
+
+  .heading
+  .title
+      float: left
+  .date
+      float: right
+      color: #606060
+  .attributes
+      float: right
+      color: #606060
+      margin-right: 1ex
+  .summary
+      float: none
+
+.preamble
+  margin-bottom: 1.5em
 
 @media (max-width: 700px)
   body

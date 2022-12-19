@@ -8,8 +8,12 @@
           content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Use the title from a page's frontmatter if it has one -->
     <title><%= current_page.data.title || "Middleman" %></title>
+    <%= stylesheet_link_tag "bamboo/main.css" %>
     <%= stylesheet_link_tag (current_page.data.style || "post") %>
     <%= stylesheet_link_tag "coderay" %>
+    <% if page_features.include? 'font-awesome' %>
+    <%= stylesheet_link_tag "font-awesome.css" %>
+    <% end %>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" referrerpolicy="no-referrer"></script>
     <% if page_features.include? 'plot' %>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/g2plot/2.4.19/g2plot.min.js" integrity="sha512-OpJr+ltzajlHXM+/bLHL6CL6kCzAnh0b7yCHnWb1nF1bofEWBnwAA3VtnVXEqROr4Tmet7pSfoEVtK9w88L6Hg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

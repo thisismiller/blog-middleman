@@ -49,7 +49,7 @@ table.CodeRay td { padding: 2px 4px; vertical-align: top; }
 .CodeRay .class { color:#B06; font-weight:bold }
 .CodeRay .class-variable { color:#369 }
 .CodeRay .color { color:#0A0 }
-.CodeRay .comment { color:#777 }
+.CodeRay .comment { color:#444 }
 .CodeRay .comment .char { color:#444 }
 .CodeRay .comment .delimiter { color:#444 }
 .CodeRay .constant { color:#036; font-weight:bold }

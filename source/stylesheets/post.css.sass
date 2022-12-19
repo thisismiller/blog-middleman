@@ -4,11 +4,13 @@
 $text-font: 'Open Sans', sans-serif
 $code-font: 'Inconsolata', monospace
 
+.CodeRay
+  background-color: var(--b-bg-2) !important
+
 body
   display: grid
   font-family: $text-font
   align-items: start
-  background-color: #f8f8f8
 
   > *
     grid-column: content
@@ -16,91 +18,52 @@ body
 h1
   text-align: center
 
-p, ol
-  margin: 0em 0em
-  margin-top: 0.5em
-  margin-bottom: 0.5em
-  line-height: 1.5em
-  orphans: 3
-  color: #101010
+h2
+  margin-top: 1em
 
-code
+ol, ul
+  orphans: 3
+  p
+    margin-bottom: 0em
+
+dd, dt
+  margin-bottom: 0em
+  p
+    margin-bottom: 0.5em
+
+pre, code
   font-family: $code-font
   font-size: 90%
 
-table
-  background: #fff
-  margin-bottom: 1.25em
-  border: 1px solid #dedede
-  word-wrap: normal
-
-  thead, tfoot
-    background: #f7f8f7
-
-  thead tr
-    th, td
-      padding: 0.5em 0.625em 0.625em
-      font-size: inherit
-      color: rgba(0, 0, 0, 0.8)
-      text-align: left
-
-  tfoot tr
-    th, td
-      padding: 0.5em 0.625em 0.625em
-      font-size: inherit
-      color: rgba(0, 0, 0, 0.8)
-      text-align: left
-
-  tr
-    th, td
-      padding: 0.5625em 0.625em
-      font-size: inherit
-      color: rgba(0, 0, 0, 0.8)
-
-    &.even, &.alt
-      background: #f8f8f7
-
-  thead tr th, tfoot tr th, tbody tr td, tr td, tfoot tr td
-    line-height: 1.6
-
-th.halign-left, td.halign-left
-  text-align: left
-
-th.halign-right, td.halign-right
-  text-align: right
-
-th.halign-center, td.halign-center
-  text-align: center
-
-th.valign-top, td.valign-top
-  vertical-align: top
-
-th.valign-bottom, td.valign-bottom
-  vertical-align: bottom
-
-th.valign-middle, td.valign-middle
-  vertical-align: middle
+textarea
+  font-family: $code-font
 
 table
-  thead th, tfoot th
-    font-weight: bold
-
-tbody tr th
-  background: #f7f8f7
-  color: rgba(0, 0, 0, 0.8)
-  font-weight: bold
-
   p
-    color: rgba(0, 0, 0, 0.8)
-    font-weight: bold
+    margin-bottom: 0em
+  pre
+    margin-bottom: 0em
 
-tfoot tr th
-  color: rgba(0, 0, 0, 0.8)
-  font-weight: bold
+  tr:only-child
+    border: none
 
-  p
-    color: rgba(0, 0, 0, 0.8)
-    font-weight: bold
+  th.halign-left, td.halign-left
+    text-align: left
+
+  th.halign-right, td.halign-right
+    text-align: right
+
+  th.halign-center, td.halign-center
+    text-align: center
+
+  th.valign-top, td.valign-top
+    vertical-align: top
+
+  th.valign-bottom, td.valign-bottom
+    vertical-align: bottom
+
+  th.valign-middle, td.valign-middle
+    vertical-align: middle
 
 // Callouts
 
@@ -157,6 +120,50 @@ b.conum *
 ol arabic
   list-style-type: decimal
 
+.admonitionblock 
+	td.icon [class^="fa icon-"]
+		font-size: 2.5em 
+		text-shadow: 1px 1px 2px rgba(0,0,0,.5) 
+		cursor: default 
+
+.admonitionblock 
+  tr
+    td.icon
+      font-size: 0.8em
+
+.admonitionblock 
+	td.icon
+		.icon-note 
+			&::before 
+				content: "\f05a" 
+				color: #19407c 
+		.icon-tip 
+			&::before 
+				content: "\f0eb" 
+				text-shadow: 1px 1px 2px rgba(155,155,0,.8) 
+				color: #111 
+		.icon-warning 
+			&::before 
+				content: "\f071" 
+				color: #bf6900 
+		.icon-caution 
+			&::before 
+				content: "\f06a" 
+				color: #bf3400 
+		.icon-important 
+			&::before 
+				content: "\f06a" 
+				color: #bf0000 
+
+div.quoteblock
+  margin-bottom: 1.5em
+
+  blockquote
+    padding-bottom: 0em
+    margin-bottom: 0em
+
+  .attribution
+    text-align: right
 
 @media (max-width: 700px)
   body
