@@ -68,7 +68,7 @@ I don't see anyone using it for this case.  There's very few uses of it at all, 
 
 === TCP Timestamps
 
-{uri-tcp-high-performance}: https://datatracker.ietf.org/doc/html/rfc7323
+:uri-tcp-high-performance: https://datatracker.ietf.org/doc/html/rfc7323
 
 {uri-tcp-high-performance}[TCP Extensions for High Performance] defines a TCP extension, TCP Timestamps, which places a timestamp on all packets.  This is used to build Round Trip Time Measurement into the TCP protocol.  While this has utility for TCP itself, this seems quite useful as a way to continuously transparently synchronize your clock with peers.  However, I can't seem to find any way that the timestamps are exposed to userspace or eBPF for processing.
 
