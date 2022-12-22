@@ -1,7 +1,8 @@
 = C++ Service Starter Pack
 :page-hidden: true
 :revdate: 01-02-2022
-:toc: preamble
+
+An inventory of the frameworks and libraries to use when writing a network service in C++.
 
 == IO Framework
 
@@ -70,11 +71,11 @@ Legend:
 
 == Testing
 
-The combination of github:google/googletest[], github:google/benchmark[], and github:google/googlemock[] has always worked well enough for me that I've never looked elsewhere.
+The combination of github:google/googletest[], github:google/benchmark[], and github:google/googlemock[] has always worked well enough for me that I've never looked elsewhere.  They are tools that have not been significantly updated or upgraded for a long time.  For a more modern set, consider github:catchorg/Catch2[], github:martinus/nanobench[], and github:rollbear/trompeloeil[], respectively.  "Modern" does not mean uniformly better though.
 
-github:catchorg/Catch2[] appears to be the other main contender for a unit testing library.
+For randomized testing, you need to answer the question "Can I generate all possible inputs myself?".  If yes, use a property testing framework like github:emil-e/rapidcheck[]. If no, then use a coverage driven fuzzer like https://llvm.org/docs/LibFuzzer.html[LibFuzzer].
 
-- github:emil-e/rapidcheck[] - Property testing
+Setting up sanitizers for both unit and randomized tests will improve coverage.  https://clang.llvm.org/docs/AddressSanitizer.html[Address Sanitizer] and https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html[Undefined Behavior Sanitizer] should be easiest to set up, as they can be easily applied to a subset of an executable.  https://clang.llvm.org/docs/ThreadSanitizer.html[Thread Sanitizer] is very useful when testing multi-threaded code, but causes a notable slowdown.  https://clang.llvm.org/docs/MemorySanitizer.html[Memory Sanitizer] requires _all_ code in the executable to be compiled with Memory Sanitizer, so all libraries used, including `libstdc++`/`libc++`.  If any of these are too much hassle to set up for the project, then the tests can be run under https://valgrind.org/[valgrind] instead, but will run notably slower.
 
 == Quality of Life
 
@@ -90,4 +91,3 @@ There's a number of libraries that fall into the category of "If you're doing a 
 
 - Hashing: github:Cyan4973/xxHash[]
 - Regex: github:intel/hyperscan[]
-
