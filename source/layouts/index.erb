@@ -25,8 +25,8 @@
   .each do |article| %>
   <div class="article indent-<%=article.data.level || 0%>">
     <div class="heading">
-      <span class="title"><h3><a href="<%= article.url %>"><%= article.title %></a></h3></span>
       <span class="date"><%= article.date.strftime("%Y-%m-%d") %></span>
+      <span class="title"><h3><a href="<%= article.url %>"><%= article.title %></a></h3></span>
       <% if article.data.hidden %><span class="attributes">Hidden</span><%end%>
       <div style="clear:both;"></div>
     </div>
