@@ -1,4 +1,9 @@
 <!doctype html>
+<% category_name = blog.articles
+  .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden }
+  .select {|a| a.path.end_with? 'index.html'}
+  .map {|a| [a.data.category, a.title]}
+  .to_h %>
 <% page_features = if current_page.data.features then current_page.data.features.split(/, */) else [] end %>
 <html>
   <head>
@@ -48,7 +53,7 @@
       <br />
       <hr width="100%"/>
       <br />
-      <% category_heading = if current_page.data.category then current_page.data.category + ": " else "" end .titleize %>
+      <% category_heading = if current_page.data.category != 'blog' then category_name[current_page.data.category] + ": " else "" end .titleize %>
       <p><a href="https://discu.eu/?q=<%= "https://transactional.blog" + current_page.url %>&submit_title=<%= category_heading + current_page.data.title %>">See discussion of this page on Reddit, HN, and lobsters.</a></p>
     <% end %>
     <% if environment == :transactionalblog %>
