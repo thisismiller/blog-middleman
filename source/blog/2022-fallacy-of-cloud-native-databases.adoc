@@ -1,0 +1,6 @@
+= The Fallacy of Cloud Native Databases
+:revdate: 8-2-2022
+:page-hidden: true
+:toc: preamble
+
+Modern cloud native databases do not fully leverage the unique features of the cloud.

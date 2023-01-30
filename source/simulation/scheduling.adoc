@@ -4,8 +4,6 @@
 :page-hidden: true
 :toc: preamble
 
-A random number generator lets it produce random but reproducible schedules of tasks.
-
 The first and most vial requirement for deterministic simulation is to have a
 scheduler that controls and executes units of concurrent work.  With this alone,
 we can build a deterministic simulated program which supports arbitrary
@@ -50,16 +48,53 @@ would need to run a custom patched version of the Go runtime, similar to what
 CockroachDB does for {uri-crdb-go-runtime}[fine-grained CPU attribution].
 ****
 
+[source,cpp]
+----
+class Task {
+
+}
+----
+
 == The Ready Queue
+
+Our next component is the queue of ready work to execute.  
+
+[source,cpp]
+----
+class ReadyQueue {
+ public:
+  void enqueue(Task&& t) {
+    m_tasks.push_back(std::move(t));
+  }
+
+  Task dequeue() {
+    size_t index = globalRng.random() % m_tasks.size();
+    Task toRun = std::move(m_tasks[index]);
+    m_tasks.erase(m_tasks.begin() + index);
+    return toRun;
+  }
+
+ private:
+  std::vector<Task> m_tasks;
+};
+----
+
+== Returning to the Scheduler: yield()
+
 
 
 == Scheduling Future Work: sleep()
 
 
 
+== Putting It Together
+
+
+
 == Poor Man's Determinism
 
 :uri-rr-project: https://rr-project.org/
+:uri-hermit: https://developers.facebook.com/blog/post/2022/11/22/hermit-deterministic-linux-testing/
 
 Though the scheduler is the most vital requirement for _deterministic_
 simulation, implementing the rest of this guide will instead provide
@@ -69,3 +104,5 @@ record the execution of a program and allow that exact execution to be replayed
 any number of times.  `rr` can provide deterministic replay, but will execute
 slower, but has a number of limitations, and won't allow you to recompile for
 printf debugging.
+
+Alternatively, {uri-hermit}[hermit] appears to be trying to solve the same problem of deterministically executing multi-threaded programs, but I have no personal familiarity with it.
