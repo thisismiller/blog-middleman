@@ -60,6 +60,7 @@ if current_page.data.category == 'blog' then
     .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden || current_page.data.hidden }
     .select {|a| a.data.category == current_page.data.category}
     .sort_by {|a| a.date}
+    .reverse
 else
   page_up = blog.articles
     .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden || current_page.data.hidden }
