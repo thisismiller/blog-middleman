@@ -1,6 +1,6 @@
 <!doctype html>
 <% category_name = blog.articles
-  .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden }
+  .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden || current_page.data.hidden }
   .select {|a| a.path.end_with? 'index.html'}
   .map {|a| [a.data.category, a.title]}
   .to_h %>
@@ -57,34 +57,30 @@
 if current_page.data.category == 'blog' then
   page_up = config.http_prefix
   category_articles = blog.articles
-    .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden }
+    .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden || current_page.data.hidden }
     .select {|a| a.data.category == current_page.data.category}
     .sort_by {|a| a.date}
 else
   page_up = blog.articles
-    .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden }
+    .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden || current_page.data.hidden }
     .select {|a| a.data.category == current_page.data.category}
     .select {|a| a.path.end_with? 'index.html'}
     .first
   category_articles = blog.articles
-    .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden }
+    .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden || current_page.data.hidden }
     .select {|a| a.data.category == current_page.data.category}
     .select {|a| !(a.path.end_with? 'index.html')}
     .sort_by {|a| a.data.order.to_i}
 end
 this_page_idx = category_articles.find_index {|a| a.path == current_page.path}
-page_prev = if this_page_idx > 0 then category_articles[this_page_idx-1] else nil end
-page_next = if this_page_idx+1 < category_articles.length then category_articles[this_page_idx+1] else nil end
+page_prev = if this_page_idx and this_page_idx > 0 then category_articles[this_page_idx-1] else nil end
+page_next = if this_page_idx and this_page_idx+1 < category_articles.length then category_articles[this_page_idx+1] else nil end
 up_title = if current_page.data.category != 'blog' then category_name[current_page.data.category] else 'Blog' end
 %>
       <div class="nav_footer">
-        <% if page_prev then %>
-          <span class="prev"><%= link_to ("🡐 " + page_prev.title), page_prev %></span>
-        <% end %>
+        <span class="prev"><%= if page_prev then link_to ("🡐 " + page_prev.title), page_prev end %></span>
         <span class="up"><%= link_to "🡑 " + up_title + " 🡑", page_up %></span>
-        <% if page_next then %>
-          <span class="next"><%= link_to (page_next.title + " 🡒"), page_next %></span>
-        <% end %>
+        <span class="next"><%= if page_next then link_to (page_next.title + " 🡒"), page_next end %></span>
       </div>
       <br />
       <% category_heading = if current_page.data.category != 'blog' then category_name[current_page.data.category] + ": " else "" end .titleize %>

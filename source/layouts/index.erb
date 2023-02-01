@@ -36,6 +36,16 @@
   </div>
 <% end %>
 
+    <% if !current_page.data.nofooter %>
+      <br />
+      <hr width="100%"/>
+      <br />
+      <div class="nav_footer">
+        <span class="prev"></span>
+        <span class="up"><%= link_to "🡑 " + "Blog" + " 🡑", config.http_prefix %></span>
+        <span class="next"></span>
+      </div>
+    <% end %>
     <% if environment == :transactionalblog %>
     <script data-goatcounter="https://transactionalblog.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
