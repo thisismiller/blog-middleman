@@ -24,7 +24,7 @@ This approach saves some person-years of effort, which can be better applied els
 This pattern has been followed by other projects as well.
 // TODO: cockroach
 
-FoundationDB begin in 2009.  Let's review the landscape of embedded databases around this time:
+FoundationDB began in 2009.  Let's review the landscape of embedded databases around this time:
 
 - BerkeleyDB: 1994 
 - Tokyo Cabinet: 2006
@@ -35,7 +35,7 @@ FoundationDB begin in 2009.  Let's review the landscape of embedded databases ar
 - WiredTiger: 2012
 
 ****
-[^1]: There's been multiple attempts at "embedded innodb" over time, and none of them have ever stuck.  Innobase Oy {uri-innobase-innodb}[released an official one in 2009].  There was another attempt from the MySQL fork Drizzle, which relased {uri-haildb}[HailDB].  As it was derived from MySQL, a GPL license was attached in both cases, which I suspect contributed to is unpopularity.
+[^1]: There's been multiple attempts at "embedded innodb" over time, and none of them have ever stuck.  Innobase Oy {uri-innobase-innodb}[released an official one in 2009].  There was another attempt from the MySQL fork Drizzle, which relased {uri-haildb}[HailDB].  A GPL license was attached in both cases, as it was derived from MySQL, which I suspect contributed to is unpopularity.
 ****
 
 == The Bad
@@ -46,13 +46,14 @@ FoundationDB begin in 2009.  Let's review the landscape of embedded databases ar
 :uri-dqlite: https://dqlite.io/
 :uri-litestream: https://litestream.io/
 :uri-fdb-checksum-impl: https://github.com/apple/foundationdb/blob/10070fd7f27c6edac56dde7dd0911ba7e15e77b8/fdbserver/KeyValueStoreSQLite.actor.cpp#L73
+:uri-sqlite-cksumvfs: https://www.sqlite.org/cksumvfs.html
 
 [quote,'https://www.sqlite.org/atomiccommit.html[Atomic Commit in SQLite]']
 ____
 SQLite assumes that the detection and/or correction of bit errors caused by cosmic rays, thermal noise, quantum fluctuations, device driver bugs, or other mechanisms, is the responsibility of the underlying hardware and operating system. SQLite does not add any redundancy to the database file for the purpose of detecting corruption or I/O errors. SQLite assumes that the data it reads is exactly the same data that it previously wrote.
 ____
 
-This is an unusual stance for a database to take, and one that I personally consider to be irresponsible.  Underlying hardware .  Operating Systems do not generally make any effort at detecting or fixing such corruption.  Databases generally assume and acknowledge this risk.
+This is an unusual stance for a database to take, and one that I personally consider to be irresponsible.  Underlying hardware is widely known to not be perfectly reliable, especially on cheap consumer devices where SQLite is frequently found.  Operating Systems do not generally make any effort at detecting or fixing such corruption.  Databases generally assume and acknowledge this risk.
 
 Let's compare this stance to the same list of embedded databases above:
 
@@ -77,9 +78,11 @@ Let's compare this stance to the same list of embedded databases above:
 
 |===
 
-And Oracle RDBMS, Microsoft SQL Server, MySQL, and Postgres all implement page-level checksums.  It is the common, expected default that a database should not provide corrupted results to an application or user, but SQLite disavows responsibility of this. Note that this transitively casts doubt on all "replicated SQLite" projects.  {uri-rqlite}[Rqlite], {uri-dqlite}[dqlite], {uri-litestream}[Litestream], etc., all implicitly inherit the ignorace of disk corruption and the risks that pose.  The replication in those situations does nothing to resolve or mitigate the corruption risk.
+And Oracle RDBMS, Microsoft SQL Server, MySQL, and Postgres all implement page-level checksums.  It is the common, expected default that a database should not provide corrupted results to an application or user, but SQLite disavows responsibility of this. Note that this transitively casts doubt on all "replicated SQLite" projects.  {uri-rqlite}[Rqlite], {uri-dqlite}[dqlite], {uri-litestream}[Litestream], etc., all implicitly inherit the ignorace of disk corruption and the risks that pose.  The replication in those situations does nothing to resolve or mitigate the corruption risk.  
 
 FoundationDB modified the SQLite B-Tree to add page-level checksums, via the {uri-fdb-checksum-impl}[sqlite codec interface].  A FoundationDB process that encounters a database corruption will kill itself and remove its local data, and re-replicates a correct copy of the data from another replica.
+
+Sqlite, as of 2020, offers the {uri-sqlite-cksumvfs}[Checksum VFS Shim], which is a plugin that adds checksum verification by adding an intermediate layer between the filesystem and its btree.  However, this support is not enabled in the default build, it is not enabled by distros (or at least in the Fedora 36 I'm currently running), nor can I find a separate RPM packaging this plugin for use.  So, though it's positive that this now exists, the barriers of access to it means that nearly all sqlite users are still exposed to potential undetected data corruptions.
 
 === Poor Branching Factor
 
