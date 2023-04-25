@@ -1,5 +1,22 @@
+/* TODO: coderay doesn't seem to have a dark mode css? */
+@media (prefers-color-scheme: light) {
+  .CodeRay {
+    background-color: var(--b-bg-2);
+  }
+}
+@media (prefers-color-scheme: dark) {
+  .CodeRay {
+    background-color: hsl(0,0%,95%);
+  }
+  pre.CodeRay {
+    background-color: hsl(0,0%,95%);
+  }
+  pre.CodeRay > code {
+    background-color: hsl(0,0%,95%);
+  }
+}
+
 .CodeRay {
-  background-color: hsl(0,0%,95%);
   border: 1px solid silver;
   color: black;
 }
