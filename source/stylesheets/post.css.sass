@@ -1,6 +1,12 @@
 @import url('https://fonts.cdnfonts.com/css/open-sans')
 @import url('https://fonts.cdnfonts.com/css/inconsolata-2')
 
+:root
+	--b-txt-dark: #404040
+@media (prefers-color-scheme: dark)
+	:root
+		--b-txt-dark: #C0C0C0;
+
 $text-font: 'Open Sans', sans-serif
 $code-font: 'Inconsolata', monospace
 
@@ -179,7 +185,7 @@ div.quoteblock
     font-size: 80%
 
   aside p
-    color: #404040 !important
+    color: var(--b-txt-dark)
 
 @media (min-width: 700px) and (max-width: 900px)
   body
@@ -190,7 +196,7 @@ div.quoteblock
     font-size: 80%
 
   aside p
-    color: #404040 !important
+    color: var(--b-txt-dark)
 
 @media (min-width: 900px)
 
@@ -202,7 +208,8 @@ div.quoteblock
     height: 0px
 
   aside p
-    color: #404040 !important
+    color: var(--b-txt-dark)
+
 
 @media (min-width: 900px) and (max-width: 1100px)
   body
