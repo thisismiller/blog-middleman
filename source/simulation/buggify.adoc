@@ -72,7 +72,7 @@ Which detects the case where part way through reading data, we're told that the 
 
 === Emphasizing Concurrency
 
-Injecting or lengthening sleeps, `if (BUGGIFY) wait(delay(5));` or `wait(delay( BUGGIFY ? 1, 0.001 ));`, are reasonably common patterns in complex, concurrent code.  `delay()` itself is already equipped with a `BUGGIFY` to randomly lengthen the sleep duration, but due to `delay()`'s pervasive use across the codebase, it's set to a low chance of happening to avoid drastically prolonging test duration with sleeps.  Inserting additional delays at a higher level allows emphasizing those operations which might be vulnerable to delays.
+Injecting or lengthening sleeps, `if (BUGGIFY) wait(delay(5));` or `wait(delay( BUGGIFY ? 1, 0.001 ));`, are reasonably common patterns in complex, concurrent code.  `delay()` itself is already equipped with a `BUGGIFY` to randomly lengthen the sleep duration, but due to ``delay()``'s pervasive use across the codebase, it's set to a low chance of happening to avoid drastically prolonging test duration with sleeps.  Inserting additional delays at a higher level allows emphasizing those operations which might be vulnerable to delays.
 
 As a concrete example, rather than entirely relying on random packet delays, a FoundationDB transaction log will sometimes pretend it didn't hear the reply that it should kill itself:
 
