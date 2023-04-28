@@ -1,0 +1,11 @@
+@media (prefers-color-scheme: light)
+    @import "rouge-light"
+
+@media (prefers-color-scheme: dark)
+    @import "rouge-dark"
+
+pre.rouge
+    background: var(--b-bg-2)
+    line-height: 125%
+pre.rouge > code
+    background: unset
