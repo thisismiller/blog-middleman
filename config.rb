@@ -10,7 +10,7 @@ end
 require 'asciidoctor-diagram'
 require_relative 'asciidoc_extensions/inline_macros'
 require_relative 'asciidoc_extensions/ophistory_diagram'
-activate :asciidoc, safe: :unsafe, template_dirs: 'asciidoc_templates', attributes: ['source-highlighter=coderay', 'toc-title=']
+activate :asciidoc, safe: :unsafe, template_dirs: 'asciidoc_templates', attributes: ['source-highlighter=rouge', 'toc-title=']
 set :skip_build_clean, proc {|f| f.start_with? 'build/images/'}
 
 class ImageDirPerAsciidoc < Middleman::Extension
