@@ -97,7 +97,7 @@ This could be to choose a random setting for a single knob:
 ----
 init( DESIRED_TEAMS_PER_SERVER, 5 );
 if( randomize && BUGGIFY )
-    DESIRED_TEAMS_PER_SERVER = deterministicRandom()->random  Int(1, 10);
+    DESIRED_TEAMS_PER_SERVER = deterministicRandom()->randomInt(1, 10);
 ----
 
 To verify that code hidden behind a feature flag is tested:
@@ -179,8 +179,7 @@ This point is defined in FoundationDB as 300 (simulated) seconds into a test, `g
 
 [source,cpp]
 ----
-if (g_network->isSimulated() &&
-    g_simulator.speedUpSimulation &&
+if (g_network->isSimulated() && g_simulator.speedUpSimulation &&
     BUGGIFY_WITH_PROB(0.0001)) {
   throw master_recovery_failed();
 }
