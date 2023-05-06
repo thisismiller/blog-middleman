@@ -45,7 +45,8 @@ activate :blog do |blog|
     if f
       f.children.map(&:to_html).join()
     else
-      Nokogiri::HTML(rendered).at('body > p')&.to_html
+      ''
+      #Nokogiri::HTML(rendered).at('body > p')&.to_html
     end
   }
 end
