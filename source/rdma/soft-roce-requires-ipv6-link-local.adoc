@@ -97,11 +97,10 @@ ping data: rdma-ping-3: DEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstu
 
 :uri-linux-rdma: https://www.spinics.net/lists/linux-rdma/msg108341.html
 
-It's because rdma-core depends on having an ipv6 link local address registered
-for your address as the `eui64` encoded version of the mac address.  See
+It's because rdma-core depends on having the `eui64` encoded version of the MAC address registered as an IPv6 link local address on the same interface.  See
 {uri-linux-rdma}[rdma_rxe usage problem] on the linux-rdma mailing list.
 
-The easy way to resolve this is just to get linux to do it for you:
+Rather than go through the manual steps outlined therein with `ipv6calc`, the easy way to resolve this is just to get linux to do it for you:
 
 [source]
 ----
