@@ -6,6 +6,7 @@
 
 :uri-soft-roce: https://www.roceinitiative.org/software-based-roce-a-new-way-to-experience-rdma/
 :uri-rdmamojo-verify: https://www.rdmamojo.com/2015/01/24/verify-rdma-working/
+:uri-rxe-validate: https://github.com/SoftRoCE/rxe-dev/wiki/Validate-that-RXE-is-working
 
 So you've successfully set up {uri-soft-roce}[Soft-RoCE].  `rdma_rxe` is loaded
 into your kernel.  All the tools are reporting that you have an RDMA device:
@@ -34,7 +35,7 @@ hca_id:	rxe0
 			link_layer:		Ethernet
 ----
 
-And now you're trying to {uri-rdmamojo-verify}[verify RDMA is working].
+And now you're trying to {uri-rdmamojo-verify}[verify RDMA is working] or {uri-rxe-validate}[validate RXE is working].
 Except, it isn't. 
 
 Does your `ibv_rc_pingpong` (and friends) hit errors like:
