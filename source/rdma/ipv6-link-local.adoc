@@ -1,0 +1,85 @@
+= Soft-RoCE Requires a Specific IPv6 Address
+:revdate: 2023-05-06
+:page-order: 10
+
+== Problem
+
+So you've successfully set up https://www.roceinitiative.org/software-based-roce-a-new-way-to-experience-rdma/[Soft-RoCE].
+`rdma_rxe` is loaded into your kernel, and now you're trying to https://www.rdmamojo.com/2015/01/24/verify-rdma-working/[verify RDMA is working].
+Except, it isn't. 
+
+Does your `ibv_rc_pingpong` (and friends) hit errors like:
+
+[source, .server]
+----
+[root@localhost ~]# ibv_rc_pingpong -g 0 -d rxe0 -i 1 
+  local address:  LID 0x0000, QPN 0x000028, PSN 0x0096f2, GID fe80::5054:ff:fe52:8b53
+Failed to modify QP to RTR
+Couldn't connect to remote QP
+----
+
+[source, .client]
+----
+[root@localhost ~]# ibv_rc_pingpong -g 0 -d rxe0 -i 1 10.0.0.234
+  local address:  LID 0x0000, QPN 0x000026, PSN 0x5137fe, GID fe80::5054:ff:fe7a:e08d
+client read/write: No space left on device
+Couldn't read/write remote address
+----
+
+Does your `qperf` fail with errors like:
+
+[source, .client]
+----
+[root@localhost ~]# qperf 10.0.0.234 ud_bw ud_lat
+ud_bw:
+failed to create address handle: Invalid argument
+----
+
+or
+
+[source, .client]
+----
+[root@localhost ~]# qperf 10.0.0.234 rc_bw 
+rc_bw:
+failed to modify QP to RTR: Invalid argument
+server: failed to modify QP to RTR: Invalid argument
+----
+
+Does your `rping` mysteriously work totally fine?
+
+[source, .server]
+----
+[root@localhost ~]# rping -s -a 10.0.0.234
+server DISCONNECT EVENT...
+wait for RDMA_READ_ADV state 10
+----
+
+[source, .client]
+----
+[root@localhost ~]# rping -c -a 10.0.0.234 -C 4 -v
+ping data: rdma-ping-0: ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqr
+ping data: rdma-ping-1: BCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrs
+ping data: rdma-ping-2: CDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrst
+ping data: rdma-ping-3: DEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstu
+----
+
+== Solution
+
+It's because rdma-core depends on having an ipv6 link local address registered for your address as the `eui64` encoded version of the mac address.  See https://www.spinics.net/lists/linux-rdma/msg108345.html[rdma_rxe usage problem] on the linux-rdma mailing list.
+
+The easy way to resolve this is just to get linux to do it for you:
+
+[source]
+----
+ip link set dev eth0 addrgenmode eui64
+ip link set dev eth0 down
+ip link set dev eth0 up
+----
+
+To make this persist across reboots, use `/etc/sysctl.d/` (or however your distro configures sysctls):
+
+[source, .99-addrgenmode.conf]
+----
+net.ipv6.conf.default.addr_gen_mode = 1
+net.ipv6.conf.eth0.addr_gen_mode = 1
+----
