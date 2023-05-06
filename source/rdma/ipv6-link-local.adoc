@@ -4,8 +4,11 @@
 
 == Problem
 
-So you've successfully set up https://www.roceinitiative.org/software-based-roce-a-new-way-to-experience-rdma/[Soft-RoCE].
-`rdma_rxe` is loaded into your kernel.  All the tools are reporting that you have an RDMA device:
+:uri-soft-roce: https://www.roceinitiative.org/software-based-roce-a-new-way-to-experience-rdma/
+:uri-rdmamojo-verify: https://www.rdmamojo.com/2015/01/24/verify-rdma-working/
+
+So you've successfully set up {uri-soft-roce}[Soft-RoCE].  `rdma_rxe` is loaded
+into your kernel.  All the tools are reporting that you have an RDMA device:
 
 [source]
 ----
@@ -31,7 +34,7 @@ hca_id:	rxe0
 			link_layer:		Ethernet
 ----
 
-And now you're trying to https://www.rdmamojo.com/2015/01/24/verify-rdma-working/[verify RDMA is working].
+And now you're trying to {uri-rdmamojo-verify}[verify RDMA is working].
 Except, it isn't. 
 
 Does your `ibv_rc_pingpong` (and friends) hit errors like:
@@ -91,7 +94,11 @@ ping data: rdma-ping-3: DEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstu
 
 == Solution
 
-It's because rdma-core depends on having an ipv6 link local address registered for your address as the `eui64` encoded version of the mac address.  See https://www.spinics.net/lists/linux-rdma/msg108345.html[rdma_rxe usage problem] on the linux-rdma mailing list.
+:uri-linux-rdma: https://www.spinics.net/lists/linux-rdma/msg108341.html
+
+It's because rdma-core depends on having an ipv6 link local address registered
+for your address as the `eui64` encoded version of the mac address.  See
+{uri-linux-rdma}[rdma_rxe usage problem] on the linux-rdma mailing list.
 
 The easy way to resolve this is just to get linux to do it for you:
 
