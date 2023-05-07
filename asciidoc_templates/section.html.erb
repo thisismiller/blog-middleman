@@ -1,4 +1,4 @@
-<h<%=(@level+1).to_s%> <%= id ? "id=\"#{@id}\"" : "" %> > 
+<h<%=(@level+1).to_s%> <%= id ? "id=\"#{@id}\"" : "" %> <%= (attributes.has_key? "role") ? "class=\"#{@attributes["role"]}\"" : "" %> >
 <%= captioned_title %>
 </h<%=(@level+1).to_s%>> 
 <%= content %>
