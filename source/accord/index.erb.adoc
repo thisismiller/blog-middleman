@@ -1,0 +1,13 @@
+= Accord (CEP-15)
+:page-date: 2022-06-06
+:page-layout: index
+:page-hidden: true
+
+We begin with an explanation of Accord, a consensus protocol designed to support geo-replication and strictly serializable transactions.  Then, extensions and optimizations to Accord are discussed, followed by how its tradeoffs fit in to a high-level data model.
+
+[.display-hidden]
+== Posts
+
+++++
+<%= partial("partials/index_section", :locals => {}) %>
+++++

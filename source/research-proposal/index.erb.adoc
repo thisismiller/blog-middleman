@@ -1,0 +1,13 @@
+= Research Proposal
+:page-date: 2023-04-25
+:page-layout: index
+:page-hidden: true
+
+While working, I've run across subjects and ideas that seem like good fodder for publications, except I'll never write them.  So I've written these as stubs of papers which introduce context and a problem to be solved.
+
+[.display-hidden]
+== Posts
+
+++++
+<%= partial("partials/index_section", :locals => {}) %>
+++++

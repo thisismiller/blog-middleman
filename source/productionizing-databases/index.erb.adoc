@@ -1,0 +1,14 @@
+= Productionizing Databases
+:page-date: 2022-07-25
+:page-layout: index
+:page-hidden: true
+
+There is a large gap between writing a database that is capable of serving a client's queries, and writing a database that someone would wish to run in production.
+This series tries to cover specifically the features, documentation, and operational guidance that are worth considering building for a new database intended to go to production.
+
+[.display-hidden]
+== Posts
+
+++++
+<%= partial("partials/index_section", :locals => {}) %>
+++++

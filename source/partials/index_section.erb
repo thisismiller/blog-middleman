@@ -1,0 +1,38 @@
+<%
+category = current_path.delete_suffix '/index.html'
+
+order_by ||= :pageorder
+case order_by
+  when :pageorder
+    sort_by_fn = lambda {|a| a.data.order.to_i}
+  when :date
+    sort_by_fn = lambda {|a| a.date}
+end
+
+if !defined? tagged
+  tag_fn = lambda {|a| true}
+elsif tagged == nil
+  tag_fn = lambda {|a| a.data.tag == nil}
+else
+  tag_fn = lambda {|a| ((a.data.tag || "").split(',').map(&:strip)).include? tagged}
+end
+%>
+<% blog.articles
+  .select {|a| a.data.category == category }
+  .select {|a| !a.path.end_with? 'index.html' }
+  .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden}
+  .select(&tag_fn)
+  .sort_by(&sort_by_fn)
+  .each do |article| %>
+  <div class="article indent-<%=article.data.level || 0%>">
+    <div class="heading">
+      <span class="date"><%= article.date.strftime("%Y-%m-%d") %></span>
+      <span class="title"><h3><a href="<%= article.url %>"><%= article.title %></a></h3></span>
+      <% if article.data.hidden %><span class="attributes">Hidden</span><%end%>
+      <div style="clear:both;"></div>
+    </div>
+    <div class="summary">
+      <%= article.summary %>
+    </div>
+  </div>
+<% end %>

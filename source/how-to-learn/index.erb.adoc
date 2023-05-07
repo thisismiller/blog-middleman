@@ -1,0 +1,13 @@
+= How to Learn
+:page-date: 2023-03-20
+:page-layout: index
+:page-hidden: true
+
+A variety of topics, introduced via iteratively deepening blog posts, textbooks, survey papers, and publications.
+
+[.display-hidden]
+== Posts
+
+++++
+<%= partial("partials/index_section", :locals => {}) %>
+++++

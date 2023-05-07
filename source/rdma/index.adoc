@@ -1,3 +1,0 @@
-= RDMA
-:page-date: 2023-05-06
-:page-layout: index

@@ -1,6 +1,6 @@
 = Soft-RoCE Requires a Specific IPv6 Address
 :revdate: 2023-05-06
-:page-order: 10
+:page-tag: troubleshooting
 
 == Problem
 

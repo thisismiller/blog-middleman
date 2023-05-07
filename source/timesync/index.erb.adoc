@@ -4,3 +4,10 @@
 :page-hidden: true
 
 A collection of notes and links from looking at projects and papers on time synchronization.
+
+[.display-hidden]
+== Posts
+
+++++
+<%= partial("partials/index_section", :locals => {}) %>
+++++
