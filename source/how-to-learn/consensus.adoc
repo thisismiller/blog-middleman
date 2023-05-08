@@ -1,0 +1,63 @@
+= Consensus
+:revdate: 2023-05-07
+:page-order: 4
+
+Paxos, Raft, and all their flavors, variations, and alternatives.
+
+== Blog Posts
+
+* http://thesecretlivesofdata.com/raft/[Raft: Understandable Distributed Consensus]
+* https://blog.the-pans.com/paxos-explained/[Paxos Explained]
+* https://medium.com/distributed-knowledge/paxos-consensus-for-beginners-1b8519d3360f[Paxos Consensus for Beginners]
+* http://www.goodmath.org/blog/2015/01/30/paxos-a-really-beautiful-protocol-for-distributed-consensus/[Paxos: A Really Beautiful Protocol for Distributed Consensus]
+* https://beyondthelines.net/algorithm/multi-paxos/[Multi-Paxos]
+* https://shachaf.net/w/consensus[Distributed consensus]
+
+It's fine to not understand every part of every post.  The goal is to understand more at the end of a post than you did at the beginning, and if you achieve that on average, then induction says that if you keep reading, you'll get there.
+
+Exiting this, aim to understand that:
+
+1. Consensus requires a quorum of votes.
+2. Raft and Multi-Paxos extend the algorithm from one consensus decision to a log of consensus decisions.
+
+There's technical differences between Raft and Multi-Paxos, but those are irrelevant for now.  They accomplish the same goal, in mostly the same way.
+
+== Textbooks
+
+* https://www.goodreads.com/en/book/show/10064443[Introduction to Reliable and Secure Distributed Programming]
+
+Lectures:
+
+* https://youtu.be/JEpsBg0AO6o[Implementing Replicated Logs with Paxos] presented by John Ousterhout
+* https://youtu.be/tqU92TI3WJs[Dr. TLA+ Series: Paxos] presented by Andrew Helwer
+
+Exiting this, aim to have a decent understanding of how the basic Paxos algorithm works.
+
+I personally really like the explanations of Paxos that evolve 2PC into something more reliable.
+
+== Survey Papers
+
+Survey papers give context of what work exists and how they fit together:
+
+* https://cs.cornell.edu/fbs/publications/vivaLaDifference.pdf[Vive La Difference: Paxos vs. Viewstamped Replication vs. Zab]
+* https://cs.cornell.edu/courses/cs7412/2011sp/paxos.pdf[Paxos Made Moderately Complex]
+* https://cse.buffalo.edu/tech-reports/2016-02.pdf[Consensus in the Cloud: Paxos Systems Demystified]
+* https://github.com/heidihoward/distributed-consensus-reading-list#surveys[Distributed Consensus Reading List: Surveys]
+
+Exiting this, aim to have an understanding of what major different variants of consensus exist, and roughly how they work.
+
+== Publications
+
+:uri-heidi-list: https://github.com/heidihoward/distributed-consensus-reading-list
+
+And then dig into any of the papers listed on the {uri-heidi-list}[Distributed Consensus Reading List].
+
+But as always, for deeper understanding I'd recommend trying to read related papers together, than choosing randomly.
+
+== Side Commentary
+
+:uri-megastore: https://storage.googleapis.com/pub-tools-public-publication-data/pdf/36971.pdf
+
+There's a few interesting tricks in consensus implementations to be aware of:
+
+* The "{uri-megastore}[Megastore optimization]", where leaderless consensus is used, but each proposal submitted by a replica includes nominating itself as the leader for the next round.  This means that if client traffic is sticky to a single replica for writes, then the system will have the one-round efficiency of multi-paxos, but without the explicit leader lease.
