@@ -1,0 +1,208 @@
+= Storage
+:revdate: 2023-05-10
+:page-hidden: true
+:page-order: 1
+
+
+== Agenda
+
+Storage hardware comes in a variety of flavors:
+
+[horizontal]
+Legacy:: HDD
+Common:: SSD SATA, SSD NVMe, EBS / "Managed Disks"
+Uncommon:: NVRAM, Zoned SSDs, Shingled HDDs
+
+I'm focusing mostly on the hardware in the "common" category, correspondingly.
+
+== HDD
+
+* HDD is mostly used to store cold data at low $/GB these days
+* atomicity is 512B sectors, organized in concentric circles to form tracks.
+
+Majority are SATA attached.  IDE is now only for Compact Flash or "ancient" storage tech.
+
+=== Optimizing for HDD
+
+Large seek latency means you should prefer larger operations:
+
+- LSMs were great for HDD too, because large sequential operations are very HDD-friendly.
+- TokuTek Fractal Tree optimized for HDD via 1MB sized B-tree leaf pages and buffering writes in internal nodes
+
+There was an old story of Google making sure SSTables were on the outermost track, as more sectors under head during one rotation means higher throughput.  https://blog.pythian.com/hard-drive-inner-or-outer/ tested this, and saw a variety of differences on different HDD models, with no fixed conclusion.
+
+== SSD
+
+Everything I'm going to say on this is probably a tl;dr of https://codecapsule.com/2014/02/12/coding-for-ssds-part-1-introduction-and-table-of-contents/
+
+The topic of optimizing for SSD is going to end up getting its own entire section, as SSD is currently the most used storage medium, so I'd like to give it more attention.
+
+=== TRIM
+
+Deleting a file is a FS metadata operation, but the drive doesn't know it can now re-use that physical space.  That instead requires a separate TRIM command to be issued to the drive.  This can be done via `fstrim` manually.  You might already have a systemd fstrim.service to issue this weekly.  You can also add the `discard` mount option to have the filesystem immediately issue a trim after any delete.
+
+== EBS
+
+Managed disks are super weird:
+- High latency (~1-2ms)
+- High throughput (1000MB/s or 6Gbit/s)
+- High concurrency (64k, presented as NVMe)
+- Low IOPS (16k maximum)
+- High durability (intra-AZ replication included)
+
+Some support "bursting", or higher IOPS limit for a short time.  (Completely throws off benchmarking.)
+
+The closest physical analog I can think of is that it's like getting a RAID of a bunch of small HDD attached to your instance.
+
+
+=== EBS: Special Features
+
+All IOs are rounded up to 16KB for throttling, so larger page sizes are "free".
+
+You can unattach and reattach an EBS volume to quickly move data between hosts.  Or snapshot an EBS, and then mount the snapshot elsewhere.
+
+You can mount an EBS volume from multiple hosts simulataneously
+- If raw block volume, multiple hosts can read/write.
+- If using FS, write once, then read-only mount on many: https://netflixtechblog.medium.com/cache-warming-leveraging-ebs-for-moving-petabytes-of-data-adcf7a4a78c3
+
+These are the sorts of things I expect "cloud native" databases to do, but no one does.
+
+
+=== Premium SSD (Azure) and Persistent Disk (GCP)
+
+Other cloud vendors' managed disk offerings all behave relatively similarly at a high level, but they're no where near as consistent as replacing one SSD with another SSD.  Be wary that they all have different performance patterns and pathologies, and that all the constants (limits and typical latency/throughput) vary more than you'd naively expect.
+
+However, I can't seem to find articles online talking about the exact caveats I have in mind, so I'm going to assume that my knowledge here was unfortunately acquired under NDA :/
+
+
+
+== NVRAM
+
+Some sort of material science wizardry.
+
+- Sold as DIMM sticks
+- Latency slightly worse than DRAM
+- Size more limited and cost higher than SSD
+- Early in product lifecycle, so weaknesses are exaggerated
+	- Bad at writes in general: write cycles and throughput
+	- https://people.ece.ubc.ca/sasha/papers/socc22.pdf
+
+
+=== NVRAM: Uses
+
+* Most boring: another tier of storage, between RAM and SSD for speed vs size/cost
+* Enterprise storage uses small amounts of it to absorb writes quickly, which are then flushed from NVRAM to SSD in larger batches.
+	* Gives you latency of NVRAM, throughput of SSD
+* I feel like there's a good opportunity to 
+
+If you want to actually use it, look into:
+* https://lwn.net/Kernel/Index/#DAX
+* https://pmem.io/pmdk/libpmem/
+ * Joy Arulra's papers for DBMS integration
+
+
+=== Intel® Optane™ DC Persistent Memory
+
+Also known under its codename, Apache Pass, was _the_ persistent memory.  They had a program where you could get free access to optanes if you did published a benchmark on them, so there were a lot of good posts about it, e.g. https://memcached.org/blog/persistent-memory/ .  You could basically make any terrible storage engine look like the next best thing by benchmarking it on Optane.  Its high price was its eventual downfall, as there wasn't enough market for it, and so Intel announced it's winding down the product line.
+
+There's now competitors with Intel exiting the field: https://www.theregister.com/2022/08/02/kioxia_everspin_persistent_memory/
+
+=== Volatile RAM
+
+Minor digression here, just to point out some good material:
+- https://frankdenneman.nl/2015/02/18/memory-tech-primer-memory-subsystem-organization/
+
+DRAM is possibly surprisingly unreliable
+- http://www.cs.toronto.edu/~bianca/papers/sigmetrics09.pdf
+- https://research.facebook.com/publications/revisiting-memory-errors-in-large-scale-production-data-centers-analysis-and-modeling-of-new-trends-from-the-field/
+ECC RAM always good, and/or checksum your data in memory:
+- https://cyan4973.github.io/xxHash/
+
+== Zoned SSD
+
+https://zonedstorage.io/docs/introduction/zoned-storage
+
+Zoned Namespaces (ZNS) provides SSDs without the FTL.  No FTL means no metadata to maintain, 1 request = 1 disk operation, and lower latency.  It also means no reserve capacity in drive to support FTL.  Write Amp also then quoted to be at ~1x instead of ~3x-4x.
+
+LSMs are a natural fit for ZNS, because they're append-only anyway, so the FTL overhead doesn't provide much benefit if you're willing to use a block device.
+
+These are new enough that it seems WD (Ultrastar DC ZN540) & Samsung (PM1731a) are the only vendors, and prices aren't available online afaict.
+
+
+== Zoned HDD: SMR
+
+Shingled Magnetic Recording provides higher density, but gives up random writes.  Drives are append-only within a given "zone".
+https://www.storagereview.com/news/what-is-shingled-magnetic-recording-smr
+
+Can be "host manged", and require special application support to use.  Essentially enterprise-only.  API for using them is https://github.com/westerndigitalcorporation/libzbc
+
+Or can be "device managed", and look like a regular HDD instead.  SMR for consumers, but not well liked:
+https://arstechnica.com/gadgets/2020/04/caveat-emptor-smr-disks-are-being-submarined-into-unexpected-channels/
+
+
+== Recap
+
+Disclaimers:
+
+Prices are weighted towards consumer grade things for storage types that have consumer-grade variants.  This will make HDD and SSD look cheaper than they maybe should be.  Latency/Throughput will vary wildly across SSDs, and I make no attempt at characterizing that.
+
+[cols="1,1,1,1,1,1"]
+|===
+|
+| Cost
+| Max Capacity
+| Latency
+| Throughput
+| Concurrency
+
+| HDD
+| $0.02/GB
+| ~20TB
+| ~4ms (7200rpm)
+| ~150MB/s
+| 32, and requires good scheduling of disk arm
+
+| SSD (SATA):
+|
+|
+|
+|
+| 32, and trivial to achieve
+
+| SSD (NVMe):
+|
+|
+|
+|
+| 64k
+
+| EBS
+| $0.08/GB
+| 16TB
+| 
+| 
+|
+
+| NVRAM
+|
+|
+|
+|
+|
+
+
+|SSD ZNS
+|
+|
+|
+|
+|
+
+|HDD SMR
+|
+|
+|
+|
+|
+
+|===

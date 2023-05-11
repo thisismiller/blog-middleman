@@ -1,0 +1,67 @@
+= Kernel and Userland Disk I/O
+:revdate: 2023-05-07
+:page-hidden: true
+:page-order: 3
+
+Filesystems, async file IO, and durability.
+
+== Filesystems
+
+Prefer XFS if you can.
+
+It benchmarks overall well https://www.phoronix.com/review/linux-58-filesystems/
+It handles a bunch of special cases well that are important for databases, e.g. https://www.scylladb.com/2016/02/09/qualifying-filesystems/
+
+Bypassing FS entirely and using raw block device is a ~10% speedup.
+
+== Don't Use FS Wrong
+
+- Be aware of file->block overhead in FS.  e.g. ext4 extents
+	- Don't unlink a large file.  Incrementally truncate down to spread metadata work.  Same goes for allocating large files.
+	- Aggressive use of FALLOC_FL_PUNCH_HOLE isn't always a good idea.
+
+How the storage device is attached to the system changes the number of parallel
+operations it can possibly support.  (And the range is wide: SATA NCQ supports
+32 concurrent requests, NVMe supports 65k.)  If you submit more than this,
+there's implicit queuing that happens in the kernel.  Theoretically
+man:ionice[1] and man:ioprio_set[2] offer some control over how requests are
+prioritized in that queue, but I've never really noticed ionice make a
+difference.
+
+== Use Fsync Right
+
+https://danluu.com/file-consistency/ and links therein
+
+Top rules:
+
+1. Write new file => fsync file.  fsync directory.
+2. First open of mutable file => fsync.
+3. Write into file: fdatasync.
+
+== (Un)Buffered IO
+
+most do unbuffered IO, and maintain their own page cache.
+Some notable examples (e.g. rocksdb) don't. 
+Advantages both ways.  Direct control vs easy elastic cache that's trivially shared with other processes on same machine.
+
+If using buffered IO, preadv2/prwritev2 flags can be helpful: https://man.archlinux.org/man/pwritev2.2.en#preadv2()_and_pwritev2()
+
+Linus on O_DIRECT is informative for the OS/DB world view mismatch https://yarchive.net/comp/linux/o_direct.html
+
+
+== How to do IO
+
+io_uring > aio > epoll > select
+
+For commentary on each of these, the libev source code is a treasure which catalogs all the caveats in a starting rant:
+
+* http://cvs.schmorp.de/libev/ev_epoll.c?view=markup#l41[libev/ev_epoll.c]
+* http://cvs.schmorp.de/libev/ev_linuxaio.c?view=markup#l41[libev/ev_linuxaio.c] -- highly recommended reading
+* http://cvs.schmorp.de/libev/ev_iouring.c?view=markup#l41[libev/ev_iouring.c] -- "overall, the *API* itself is, I dare to say, not a total trainwreck."
+
+
+== Kernel Things
+
+* Be aware of IO scheduler https://wiki.ubuntu.com/Kernel/Reference/IOSchedulers
+* You can periodically scrape /proc/diskstats to self-report on disk metrics
+* If using buffered io, be aware of vm.dirty_ratio https://docs.kernel.org/admin-guide/sysctl/vm.html#dirty-ratio

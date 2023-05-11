@@ -1,6 +1,6 @@
 = Consensus
 :revdate: 2023-05-07
-:page-order: 4
+:page-order: 8
 
 Paxos, Raft, and all their flavors, variations, and alternatives.
 

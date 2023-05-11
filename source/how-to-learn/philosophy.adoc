@@ -1,0 +1,122 @@
+= Philosophy of How to Learn
+:revdate: 2023-05-07
+:page-hidden: true
+:page-tag: philosophy
+
+The background and context on why the groupings exist the way they do, and the
+different sorts of pages you'll find in this section.  But, this is all
+philosophical waxing, so quite skippable.
+
+== Why Learning is Hard
+
+There's a number of topics in databases and distributed systems which are
+difficult to pick up, and I claim they can be roughly categorized as being
+difficult for one of two reasons:
+
+1. The topic is complicated because it is deep and full of nuance, with an
+extensive history of research.  It's hard to know where to start, and how to
+effectively get to the point where you can read and meaningfully understand
+current research.
+2. The topic is complicated because it is wide and under-published.  People
+typically learn the subject from experience in an area, and there's no singular
+place to which one can point someone new to the area in order to learn about it.
+A singular collection of information could counteract the breadth of the topic,
+but instead in its absence, useful information is strewn in tidbits across
+codebases, mailing lists, blog posts, etc., and only collected in the minds of
+experienced practitioners.
+
+Which is still quite abstract and overly generalized, so let's use some concrete examples.
+
+== Difficulty Due to Depth
+
+Distributed systems and database research has been ongoing since the 1970s.  Any
+given subfield has grown such that just reading everything in published order
+would be an insurmountable task.  Query optimization, storage engines,
+replication, consensus, etc., are all complex topics with already an intractable
+quantity of published research.  After 50 years, publications generally assume a
+significant context, and lean heavily on terminology specialized to the area.
+After all, many publications are written with a strict 12 page limit, and so
+relying on background and context is necessary even just for space reasons.
+
+Thus, our goal is to be gently introduced to the concepts and terminology of the
+area, gradually preparing us to be able to understand currently published work.
+Pages on topics in this category are thus ordered by iteratively increasing the
+depth at which a given topic is explored:
+
+1. Blog posts
+2. Textbooks and lectures
+3. Surveys
+4. Publications
+
+Blog posts, especially those aimed at beginners, are often the gentlest introduction to a new area.  There's posts written by experts trying to give a simplified and well structured introduction to the area, and there's posts written by folk also new to the area discussing what they've just learned and understood.  Regardless of the authorship perspective, the 
+
+Textbooks and lectures given detailed and precise descriptions of what they
+cover, and are generally self-contained such that a beginner is given everything
+needed to understand the material.  They do require a significantly larger time
+investment, and due to the immense labor involved in creating a textbook, tend
+to lag significantly behind modern research, if a textbook even exists which
+covers the topic at all.  But their formal treatment of the subject matter does
+a great job of comprehensively filling in details that the informal and
+imprecise teachings of blog posts might have missed, and prepare the reader well
+for reading papers.
+
+Survey papers catalog and classify previous research in an area.  They highlight
+the major pieces of work, provide a framework for comparing and contrasting
+systems, and generally conclude with some forward looking perspective on either
+missing research areas identified in the work or future directions in which the
+area might evolve.  This provides a list of good starting papers to read, a
+description of the strengths or weaknesses to pay attention to in the class of
+systems, and the framework to keep in mind when looking at new papers in the
+area.  Good survey papers are incredibly useful for trying to quickly understand
+the state of research in an area, but not all topics have (sufficiently recent)
+survey papers.  If the area doesn't, then a possible workaround is to find PhD
+theses from recent graduates who wrote papers in the area, and then read
+specifically the background section of the thesis, which tends to be somewhat
+similar in providing the background, motivation, and context to their published
+work.
+
+Finally, go find a set of related publications to read.  I specifically suggest
+reading papers that try to address the same overall problem in different ways
+together, to be able to compare and contrast the approaches.  (Note again how
+helpful survey papers are with both these goals.)  In general, publications tend
+to oversell their strengths and undersell (or omit) their weaknesses.  My goal
+in reading papers is to identify when I would or would not want to apply the
+ideas presented in the paper, so being able to identify those weaknesses has
+been a good indicator to me of understanding of a paper and research area.  
+
+When discussing this ordering with others, the disagreement has largely been
+around that papers deserve to be listed far higher in the list.  This argument
+has merit: there's a number of well written papers which manage to remain
+approachable, and not all of a paper needs to be fully understood in order to
+obtain value from reading it.  But I think this stems from a different goal.  If
+your interest is along the line of trying to broadly follow modern research
+across Computer Science, then this entire approach is likely the opposite of
+what you wish.  Something like https://blog.acolyer.org/[The Morning Paper]
+would likely be a much better fit, or similar blogs that cover papers in
+high-level detail.
+
+== Difficulty Due to Breadth
+
+If you wish to write a TCP/IP stack for a real world product, you don't need to
+just be compatible with the TCP/IP standards, you need to be compatible with
+every broken TCP/IP stack that any other product has ever shipped.  No one
+maintains a list of every deviation from a standard that needs to be handled and
+accounted for.  Any topic that deals with the history of working around any and
+all previously existing (and potentially incorrectly implemented) software or
+hardware products is difficult because accumulating that list is difficult.
+
+There's other subject areas which are difficult because companies refuse to
+release information about their products, and anyone who gains that knowledge is
+placed under a Non-Disclosure Agreement.  If you'd like to know specific details
+about how the processor works which your code runs on, good luck getting that
+information from any CPU manufacturer.  If you'd like to know how an SSD works
+internally to better optimize a storage engine for it, don't hold your breath.
+Sometimes experience or time spent benchmarking a product is the only way to
+gain the necessary information, and actively listening around for details
+dropped from NDAs being bent.
+
+For all such subjects, there is no great guiding learning process I have to
+recommend.  Pages in this series for these topics are simply just aggregations
+of information across the web, to try to centralize it as much as possible, and
+make sure that at least the reader can become aware of the terminology and
+details relevant for the area.

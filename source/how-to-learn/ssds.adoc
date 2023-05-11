@@ -1,0 +1,24 @@
+= SSDs
+:revdate: 2023-05-10
+:page-hidden: true
+:page-order: 2
+
+But if you want to go far down this rabbit hole, it's totally possible.  E.g. http://www.vldb.org/pvldb/vol13/p519-kakaraparthy.pdf
+
+T10 is the SAS group.  T13 is the SATA group.
+
+Data Integrity
+https://lwn.net/Articles/548294/  oracle uses DIX/DIF
+
+SSD behavior:
+http://camelab.org/uploads/paper/MJ-SIGMETRICS13.pdf
+
+
+
+SMART
+TRIM
+garbage collection affects perf
+SSD can be overprovisioined internally
+
+
+https://www.evanjones.ca/durability-nvme.html
