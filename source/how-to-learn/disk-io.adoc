@@ -7,18 +7,35 @@ Filesystems, async file IO, and durability.
 
 == Filesystems
 
-Prefer XFS if you can.
+:uri-phoronix-fs-bench: https://www.phoronix.com/review/linux-58-filesystems/
+:uri-scylladb-qual-fs: https://www.scylladb.com/2016/02/09/qualifying-filesystems/
 
-It benchmarks overall well https://www.phoronix.com/review/linux-58-filesystems/
-It handles a bunch of special cases well that are important for databases, e.g. https://www.scylladb.com/2016/02/09/qualifying-filesystems/
+Prefer XFS if you can.  It {uri-phoronix-fs-bench}[benchmarks overall well].
+It handles a bunch of special cases well that are {uri-scylladb-qual-fs}[important for databases].
 
-Bypassing FS entirely and using raw block device is a ~10% speedup.
+It's possible to open a raw block device and entirely bypass the filesystem.
+Doing so requires that all reads and writes be 4k aligned and a multiple of 4k
+in size. It also requires reimplementing everything that comes for free with a
+filesystem: free block tracking, disk space usage reporting, snapshot-based
+backup/restore, application logging, drive health testing.  Anecdotally, I've
+heard that the advantage of all of this is an ~10% speedup, so not a tradeoff
+that's often worth the cost.  But for easy experimentation and testing of direct
+block storage access, a loopback device (man:losetup[8]) allows mounting a file
+as a block device.
 
 == Don't Use FS Wrong
 
-- Be aware of file->block overhead in FS.  e.g. ext4 extents
-	- Don't unlink a large file.  Incrementally truncate down to spread metadata work.  Same goes for allocating large files.
-	- Aggressive use of FALLOC_FL_PUNCH_HOLE isn't always a good idea.
+Filesystems maintain metadata about how blocks are associated with files, and
+optimizing around this will lead to lower latency.  Ext4 and XFS both can
+aggregate contiguous blocks in a file into a single _extent_, reducing the
+metadata overhead.  This encourages appending to files in large chunks at a time
+(or using fallocate to extend the file before performing a series of small
+appends).  Maintaining large extents also potentially discourages excessive use
+of some filesystem metadata calls, as e.g. fine-grained use of
+FALLOC_FL_PUNCH_HOLE would be an easy way to continuously fragment extents.
+Large files incur large metadata, and so it's often a good idea to incrementally
+truncate down a large file before unlinking it, otherwise the entire metadata
+traversal and deleting will be performed synchronously with the unlink.
 
 How the storage device is attached to the system changes the number of parallel
 operations it can possibly support.  (And the range is wide: SATA NCQ supports
@@ -30,7 +47,7 @@ difference.
 
 == Use Fsync Right
 
-https://danluu.com/file-consistency/ and links therein
+https://danluu.com/file-consistency/[Dan Luu's File Consistency page] and links therein provide a nice overview of 
 
 Top rules:
 
@@ -40,24 +57,29 @@ Top rules:
 
 == (Un)Buffered IO
 
-most do unbuffered IO, and maintain their own page cache.
+:uri-preadv2-prwitev2: https://man.archlinux.org/man/pwritev2.2.en#preadv2()_and_pwritev2()
+:uri-linux-on-odirect: https://yarchive.net/comp/linux/o_direct.html
+
+Most databases do unbuffered (O_DIRECT) IO, and maintain their own page cache.
 Some notable examples (e.g. rocksdb) don't. 
-Advantages both ways.  Direct control vs easy elastic cache that's trivially shared with other processes on same machine.
+There are advantages both ways.  Direct control over the page cache allows for better caching decisions (e.g. don't evict the root node of the btree).  Using the system page cache notably offers an easy, elastic cache that's trivially shared with other processes on same machine.
 
-If using buffered IO, preadv2/prwritev2 flags can be helpful: https://man.archlinux.org/man/pwritev2.2.en#preadv2()_and_pwritev2()
+If using buffered IO, {uri-preadv2-pwritev2}[preadv2/prwritev2's flags] can be helpful. 
 
-Linus on O_DIRECT is informative for the OS/DB world view mismatch https://yarchive.net/comp/linux/o_direct.html
+{uri-linus-on-odirect}[Linus on O_DIRECT] is informative for the OS/DB world view mismatch.
 
 
 == How to do IO
 
-io_uring > aio > epoll > select
+:uri-libeio: http://software.schmorp.de/pkg/libeio.html
+
+There's a number of different ways to do asychronous IO in linux.  Prefer them in the following order: io_uring > aio > epoll > select.  Support for doing more than asynchronous reading and writing decreases rapidly the further one gets from io_uring.  For example, io_uring supports an async fallocate, but aio doesn't; aio supports async fsync, and epoll doesn't.  A library which issues synchronous filesystems calls on background threads, like {uri-libeo}[libeio], will be needed to fill in support where it's missing.
 
 For commentary on each of these, the libev source code is a treasure which catalogs all the caveats in a starting rant:
 
 * http://cvs.schmorp.de/libev/ev_epoll.c?view=markup#l41[libev/ev_epoll.c]
 * http://cvs.schmorp.de/libev/ev_linuxaio.c?view=markup#l41[libev/ev_linuxaio.c] -- highly recommended reading
-* http://cvs.schmorp.de/libev/ev_iouring.c?view=markup#l41[libev/ev_iouring.c] -- "overall, the *API* itself is, I dare to say, not a total trainwreck."
+* http://cvs.schmorp.de/libev/ev_iouring.c?view=markup#l41[libev/ev_iouring.c] -- "overall, the _API_ itself is, I dare to say, not a total trainwreck."
 
 
 == Kernel Things
