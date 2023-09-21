@@ -5,6 +5,31 @@
   .map {|a| [a.data.category, a.title]}
   .to_h %>
 <% page_features = if current_page.data.features then current_page.data.features.split(/, */) else [] end %>
+<%
+if current_page.data.category == 'blog' then
+  page_up = config.http_prefix
+  category_articles = blog.articles
+    .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden || current_page.data.hidden }
+    .select {|a| a.data.category == current_page.data.category}
+    .sort_by {|a| a.date}
+    .reverse
+else
+  page_up = blog.articles
+    .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden || current_page.data.hidden }
+    .select {|a| a.data.category == current_page.data.category}
+    .select {|a| a.path.end_with? 'index.html'}
+    .first
+  category_articles = blog.articles
+    .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden || current_page.data.hidden }
+    .select {|a| a.data.category == current_page.data.category}
+    .select {|a| !(a.path.end_with? 'index.html')}
+    .sort_by {|a| a.data.order.to_i}
+end
+this_page_idx = category_articles.find_index {|a| a.path == current_page.path}
+page_prev = if this_page_idx and this_page_idx > 0 then category_articles[this_page_idx-1] else nil end
+page_next = if this_page_idx and this_page_idx+1 < category_articles.length then category_articles[this_page_idx+1] else nil end
+up_title = if current_page.data.category != 'blog' then category_name[current_page.data.category] else 'Blog' end
+%>
 <html>
   <head>
     <meta charset="utf-8">
@@ -33,8 +58,15 @@
     <% end %>
   </head>
   <body>
-    <div class="header">
+    <% if !current_page.data.nofooter %>
+    <div class="nav_header">
+      <span class="prev"><%= if page_prev then link_to ("↤ " + page_prev.title), page_prev end %></span>
+      <span class="up"><%= link_to "↑ " + up_title + " ↑", page_up %></span>
+      <span class="next"><%= if page_next then link_to (page_next.title + " ↦"), page_next end %></span>
     </div>
+    <hr width="100%"/>
+    <br />
+    <% end %>
     <h1><%= if current_page.data.no_title then "" else current_page.data.title end %></h1>
     <!--
     # TODO: Improve the styling of this before releasing.
@@ -53,31 +85,6 @@
       <br />
       <hr width="100%"/>
       <br />
-<%
-if current_page.data.category == 'blog' then
-  page_up = config.http_prefix
-  category_articles = blog.articles
-    .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden || current_page.data.hidden }
-    .select {|a| a.data.category == current_page.data.category}
-    .sort_by {|a| a.date}
-    .reverse
-else
-  page_up = blog.articles
-    .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden || current_page.data.hidden }
-    .select {|a| a.data.category == current_page.data.category}
-    .select {|a| a.path.end_with? 'index.html'}
-    .first
-  category_articles = blog.articles
-    .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden || current_page.data.hidden }
-    .select {|a| a.data.category == current_page.data.category}
-    .select {|a| !(a.path.end_with? 'index.html')}
-    .sort_by {|a| a.data.order.to_i}
-end
-this_page_idx = category_articles.find_index {|a| a.path == current_page.path}
-page_prev = if this_page_idx and this_page_idx > 0 then category_articles[this_page_idx-1] else nil end
-page_next = if this_page_idx and this_page_idx+1 < category_articles.length then category_articles[this_page_idx+1] else nil end
-up_title = if current_page.data.category != 'blog' then category_name[current_page.data.category] else 'Blog' end
-%>
       <div class="nav_footer">
         <span class="prev"><%= if page_prev then link_to ("↤ " + page_prev.title), page_prev end %></span>
         <span class="up"><%= link_to "↑ " + up_title + " ↑", page_up %></span>
