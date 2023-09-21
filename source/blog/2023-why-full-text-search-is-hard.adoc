@@ -1,0 +1,86 @@
+= Why Full Text Search is Hard
+:revdate: 2023-09-20
+
+It's easy to find documents containing "large" and "elephant".
+It's hard to find documents in German which have "large" and "elephant" together in a sentence, or words with similar meanings to large, and provide only the 10 most relevant documents.
+
+## Full Text Search
+
+Full text search comprises three things:
+
+1. Tokenizing
+2. Searching
+3. Ranking
+
+And the sense that full-text search should be easy often stems from fixating on the middle part of "What's so hard about implementing an inverted index?" and it's not.
+If the use-case is happy with the query being a set of words, and only documents with exact matches being returned, then that is a very tractable problem domain.
+It's all the challenges outside of that which are hard.
+
+## Tokenizing
+
+:uri-wikipedia-stemming: https://en.wikipedia.org/wiki/Stemming
+:uri-wikipedia-stopwords: https://en.wikipedia.org/wiki/Stop_word
+
+When a user searches for "car wash", should documents with "washing cars" in them?
+If so, a {uri-wikipedia-stemming}[stemming algorithm] is now required to understand how to normalize declined and conjugated words to a standard searchable form.
+Except not all users speak English and not all documents are in English, so a stemmer per language is required.
+And each language introduces their own language-specific challenges.
+Chinese, Japanese, and Korean don't have whitespace for word separation, so one needs a completely different way of identifying words there (a "CJK tokenizer").
+Don't forget that Thai doesn't use spaces around words, but instead uses them to separate phrases or sentences.
+German well known for its compound words, so those need to be split those apart.
+Russian is highly conjugated/declined and highly irregular.
+Hebrew needs normalization as letters can change based on position.
+Indian languages get written in informal English phonetics rather than the "proper" e.g. telugu script.
+Supporting a global service for searches means supporting many languages, and that's hard.
+
+Even within one language, should "car washing" return documents with "car cleaning" in them?
+Now an understanding of synonyms in a language is needed.
+Should "the red cat" return documents with "the" in it?
+Now an understanding of what words don't carry meaning ({uri-wikipedia-stopwords}[stop words]) is needed.
+(And again, remember that this is per language!)
+
+## Searching
+
+:uri-legal-search: https://law.indiana.libguides.com/Tutorials/search_syntax
+
+Now the set of words to search for have been determined.
+Each supplied search term is treated as a conjunction in a filter, which means that there's optimization potential to use the most selective search terms first when consulting the inverted index of terms.
+But being able to determine a good order requires statistics about frequencies of words _before_ consulting the index.
+Disjunction is the most frequently requested subsequent feature, so that one can express `term1 AND (term2 OR term3)`.
+This further complicates calculating an optimal search term order.
+Proximity is often desired, so that if one searches for "large elephant", it's possible to express that those two words should be closely related (ie. in the same sentence), but still support some tolerance so that "large, wild elephant" matches.
+This pushes a strong desire for having not just the document ID in the inverted index, but the position of the word in the text as well.
+(I think {uri-legal-search}[legal search engines] seem reasonably well known for providing a good set of features.
+Each additional search feature supported impacts on how the full text search solution will want to try and index the data for those queries, and presents opportunities for query optimization to try and evaluate complex queries optimally.
+
+## Ranking
+
+:uri-wikipedia-bm25: https://en.wikipedia.org/wiki/Okapi_BM25
+:uri-postgres-weights: https://www.postgresql.org/docs/current/textsearch-controls.html#TEXTSEARCH-RANKING
+
+After retrieving all the matching documents from the index, you're then going to want to display them to the user according to some order. 
+In the simplest case, one could be like GMail and just have a simple "more recent first".
+Or one could try to determine how relevant each document is to the user's query.
+Classically, {uri-wikipedia-bm25}[BM25] was the most often used ranking algorithm, and often the implementation would {uri-postgres-weights}[offer weights] one could tweak to optimize the final ranking.
+(Was the match in the title? Give it a 2x!)
+I've been hearing of more and more cases of ranking instead utilizing machine learning techniques, as then one is able to mine more detailed features out of each document and signals from users as to what they consider to be relevant, to try to get closer to what a human subjectively considers important.
+Training a ranking and relevancy model is not a simple matter.
+
+## Scale
+
+The rest of the difficulty is just around how many documents are being searched.
+If all documents fit within one postgres instance, then it's operationally straightforward.
+If the goal is to search the whole web, and results should be returned in under 100ms, then that's significantly more distributed systems and databases work to do.
+
+## Resources
+
+:uri-stemmer: https://vijinimallawaarachchi.com/2017/05/09/porter-stemming-algorithm/
+:uri-inverted-index: https://www.khoury.northeastern.edu/home/vip/teach/IRcourse/2_indexing_ngrams/slides/indexing_1.pdf
+:uri-bm25: https://www.elastic.co/blog/practical-bm25-part-2-the-bm25-algorithm-and-its-variables
+:uri-book: https://people.ischool.berkeley.edu/~hearst/irbook/
+
+The porter stemmer is a well known stemmer for English, and there's some {uri-stemmer}[nice explanations of how it works].
+There's a number of lectures on Information Retrieval which provide a {uri-inverted-index}[good explanation of inverted indexes].
+Elasticsearch has a nice {uri-bm25}[breakdown of what the bm25 formula means].
+
+If you're interested in a comprehensive treatment of the topic, I'll suggest {uri-book}[Modern Information Retrieval] as the definitive textbook.
