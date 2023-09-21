@@ -1,6 +1,5 @@
 = Philosophy of How to Learn
 :revdate: 2023-05-07
-:page-hidden: true
 :page-tag: philosophy
 
 The background and context on why the groupings exist the way they do, and the
@@ -48,7 +47,15 @@ depth at which a given topic is explored:
 3. Surveys
 4. Publications
 
-Blog posts, especially those aimed at beginners, are often the gentlest introduction to a new area.  There's posts written by experts trying to give a simplified and well structured introduction to the area, and there's posts written by folk also new to the area discussing what they've just learned and understood.  Regardless of the authorship perspective, the 
+Blog posts, especially those aimed at beginners, are often the gentlest
+introduction to a new area.  There's posts written by experts trying to give a
+simplified and well structured introduction to the area, and there's posts
+written by folk also new to the area discussing what they've just learned and
+understood.  Regardless of the authorship perspective, blog posts are often
+aimed at a less technical audience and don't rely as heavily on pre-established
+context.  Reading multiple blog posts on the same topic provides both a
+repetitive reinforcement of the material and multiple vantage points to try and
+understand the topic better.
 
 Textbooks and lectures given detailed and precise descriptions of what they
 cover, and are generally self-contained such that a beginner is given everything
