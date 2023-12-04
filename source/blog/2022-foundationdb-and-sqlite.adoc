@@ -26,7 +26,7 @@ FoundationDB began in 2009.  Let's review the landscape of embedded databases ar
 
 - BerkeleyDB: 1994 
 - Tokyo Cabinet: 2006
-- Embedded InnoDB[^1]: 2009 [.aside]#{aside-innodb}# and then some text afterwards
+- Embedded InnoDB[^1]: 2009 [.aside]#{aside-innodb}#
 - LevelDB: 2011
 - LMDB: 2011
 - RocksDB: 2012
