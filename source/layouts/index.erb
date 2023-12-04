@@ -9,7 +9,6 @@
     <title><%= current_page.data.title || category || "Index" %></title>
     <%= stylesheet_link_tag "bamboo/main.css" %>
     <%= stylesheet_link_tag (current_page.data.style || "index") %>
-    <%= javascript_include_tag "site" %>
   </head>
   <body>
     <h1><%= current_page.data.title || category || "Index" %></h1>
