@@ -1,21 +1,19 @@
 = FoundationDB and SQLite
-:revdate: 09-12-2022
+:revdate: 2022-09-12
+:page-date: 2022-09-12
 :icons: font
 :page-features: font-awesome
 :page-hidden: true
 :toc: preamble
+:page-disclaimer: Opinions are my own, and do not represent the opinions of my (previous) employer(s), some of whom sponsor or employed me for FoundationDB development.
 
 FoundationDB's use of SQLite's btree as its own storage engine should not be used to support claims that SQLite has a high quality and performant storage implementation.
 
 == Why SQLite
 
-[.sidenote]
-****
-CAUTION: Disclaimer: Opinions are my own, and do not represent the opinons of my (previous) employer(s), some of whom sponsor or employed me for FoundationDB development.
-****
-
 :uri-innobase-innodb: https://web.archive.org/web/20090424061224/http://www.innodb.com/wp/products/embedded-innodb/
 :uri-haildb: https://github.com/nextgres/oss-haildb
+:aside-innodb: [^1]: There's been multiple attempts at "embedded innodb" over time, and none of them have ever stuck.  Innobase Oy {uri-innobase-innodb}[released an official one in 2009].  There was another attempt from the MySQL fork Drizzle, which relased {uri-haildb}[HailDB].  A GPL license was attached in both cases, as it was derived from MySQL, which I suspect contributed to its unpopularity.
 
 Designing and writing a storage engine is a substantial amount of effort.
 Previous works have shown it to be around 2-4 person-years of effort to get to a first release.
@@ -28,15 +26,11 @@ FoundationDB began in 2009.  Let's review the landscape of embedded databases ar
 
 - BerkeleyDB: 1994 
 - Tokyo Cabinet: 2006
-- Embedded InnoDB[^1]: 2009
+- Embedded InnoDB[^1]: 2009 [.aside]#{aside-innodb}# and then some text afterwards
 - LevelDB: 2011
 - LMDB: 2011
 - RocksDB: 2012
 - WiredTiger: 2012
-
-****
-[^1]: There's been multiple attempts at "embedded innodb" over time, and none of them have ever stuck.  Innobase Oy {uri-innobase-innodb}[released an official one in 2009].  There was another attempt from the MySQL fork Drizzle, which relased {uri-haildb}[HailDB].  A GPL license was attached in both cases, as it was derived from MySQL, which I suspect contributed to is unpopularity.
-****
 
 == The Bad
 

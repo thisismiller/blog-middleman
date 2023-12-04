@@ -44,6 +44,7 @@ up_title = if current_page.data.category != 'blog' then category_name[current_pa
     <% if page_features.include? 'font-awesome' %>
     <%= stylesheet_link_tag "font-awesome.css" %>
     <% end %>
+    <%= javascript_include_tag "aside-positioning" %>
     <% if page_features.include? 'plot' %>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" referrerpolicy="no-referrer"></script>
     <%= javascript_include_tag "plotutil" %>
@@ -59,40 +60,37 @@ up_title = if current_page.data.category != 'blog' then category_name[current_pa
   </head>
   <body>
     <% if !current_page.data.nofooter %>
+    <main>
     <div class="nav_header">
       <span class="prev"><%= if page_prev then link_to ("↤ " + page_prev.title), page_prev end %></span>
       <span class="up"><%= link_to "↑ " + up_title + " ↑", page_up %></span>
       <span class="next"><%= if page_next then link_to (page_next.title + " ↦"), page_next end %></span>
     </div>
     <hr width="100%"/>
-    <br />
     <% end %>
     <h1><%= if current_page.data.no_title then "" else current_page.data.title end %></h1>
-    <!--
-    # TODO: Improve the styling of this before releasing.
-    <aside style="text-align: right">
-      <% if current_page.data.date then %>
-      <p>Originally posted <%= current_page.data.date.strftime("%Y-%m-%d") %></p>
-      <% end %>
-      <% if current_page.data.last_updated then %>
-      <p>Last updated <%= current_page.data.last_updated %></p>
-      <% end %>
+    <aside class="postmeta">
+      <%=
+      metadata = []
+      if current_page.data.date then metadata.append({:key => "Posted", :value => current_page.data.date.strftime("%Y-%m-%d")}) end
+      if current_page.data.last_updated then metadata.append({:key => "Updated", :value => current_page.data.last_updated.strftime("%Y-%m-%d")}) end
+      metadata = metadata.map {|a| a[:key] + " " + a[:value]}.join '<br>'
+      if metadata then '<p>' + metadata + '</p>' end
+      %>
     </aside>
-    -->
+    <%= if current_page.data.disclaimer then "<aside><p>" + current_page.data.disclaimer + "</p></aside>" end %>
     <%= yield %>
     <!-- TODO: consider https://utteranc.es/ for in-page comments. -->
     <% if !current_page.data.nofooter %>
-      <br />
       <hr width="100%"/>
-      <br />
       <div class="nav_footer">
         <span class="prev"><%= if page_prev then link_to ("↤ " + page_prev.title), page_prev end %></span>
         <span class="up"><%= link_to "↑ " + up_title + " ↑", page_up %></span>
         <span class="next"><%= if page_next then link_to (page_next.title + " ↦"), page_next end %></span>
       </div>
-      <br />
       <% category_heading = if current_page.data.category != 'blog' then category_name[current_page.data.category] + ": " else "" end .titleize %>
       <p><a href="https://discu.eu/?q=<%= "https://transactional.blog" + current_page.url %>&submit_title=<%= category_heading + current_page.data.title %>">See discussion of this page on Reddit, HN, and lobsters.</a></p>
+      </main>
     <% end %>
     <% if environment == :transactionalblog %>
     <script data-goatcounter="https://transactionalblog.goatcounter.com/count"

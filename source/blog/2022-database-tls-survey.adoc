@@ -26,18 +26,15 @@ I asked ScyllaDB developers about their (unusual) choice of GnuTLS, and was told
 :uri-libtls-tutorial: https://github.com/bob-beck/libtls/blob/master/TUTORIAL.md
 :uri-libretls: https://git.causal.agency/libretls/
 :uri-boringssl: https://boringssl.googlesource.com/boringssl/
+:aside-wolfssl: [^1]: And consider paying for WolfSSL over using OpenSSL as the ASIO TLS implementation.
 
 If you're here to decide what TLS implementation you should use when developing your own database, then my advice would be:
 
-* If available, use your RPC/network/eventloop provider's TLS implementation (e.g. ASIO's TLS support[^1], netty's SSL).
+* If available, use your RPC/network/eventloop provider's TLS implementation (e.g. ASIO's TLS support[^1], netty's SSL). [.aside]#{aside-wolfssl}#
 * If available, you should use your language's native TLS implementation (e.g. java => JDK, golang => crypto/tls).
 * Otherwise, code against {uri-libtls-tutorial}[libtls], using https://www.libressl.org/[LibreSSL].
 ** Once your project is mature enough that you care about LibreSSL benchmarking worse than OpenSSL, switch to {uri-libretls}[libretls].
 * If you must directly use OpenSSL, using {uri-boringssl}[BoringSSL].
-
-****
-[^1]: And consider paying for WolfSSL over using OpenSSL as the ASIO TLS implementation.
-****
 
 (There exist other implementations of the libtls api (github:michaelforney/libtls-bearssl[], github:mirleft/libnqsb-tls[]), but I'm not sure when I'd specifically recommend using them.  BearSSL might be a good choice for embedded platforms if you don't have the budget to pay for WolfSSL.  Not Quite So Broken might only be of interest if there's no possibility of ever patching a future TLS vulnerability?)
 
