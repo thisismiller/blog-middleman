@@ -59,6 +59,9 @@ up_title = if current_page.data.category != 'blog' then category_name[current_pa
     <% if page_features.include? 'alpine' %>
       <script src="https://unpkg.com/alpinejs" defer></script>
     <% end %>
+    <% if page_features.include? 'ejs' %>
+      <script src="https://www.unpkg.com/ejs@3.1.9/ejs.min.js" referrerpolicy="no-referrer"></script>
+    <% end %>
   </head>
   <body>
     <% if !current_page.data.nofooter %>

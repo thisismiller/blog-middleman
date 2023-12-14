@@ -1,6 +1,6 @@
 = S3-Compatible Cloud Storage Costs
 :revdate: 2023-12-13
-:page-features: alpine
+:page-features: alpine, ejs
 
 S3 is a convenient way to host larger static artifacts for a website, but which S3-compatible service is the cheapest for that usecase?
 
@@ -40,6 +40,30 @@ TL;DR, the R2 free tier is sufficiently generous to cover most personal blog use
 
 <script>
 
+const template_costTable = `
+<table>
+    <thead>
+    <% titles.forEach( title => { %>
+    <th><%= title %></th>
+    <% }); %>
+    <th>Total</th>
+    </thead>
+    <tbody>
+    <% Object.entries(costmodel).forEach( ([vendor, data]) => { %>
+    <tr>
+        <td><%= vendor %></td>
+        <% costTotal = 0;
+        columns.forEach( column => {
+        var [prefix, suffix] = units[column];
+        const cost = computeCost(data[column], model[column]);
+        costTotal += cost; %>
+        <td><%= prefix + cost.toPrecision(2).toString() + suffix %></td>
+        <% }); %>
+        <td><%= "$" + costTotal.toPrecision(2).toString() %></tr>
+    </tr>
+    <% }); %>
+    </tbody>
+</table>`;
 function renderCostTable(costmodel, userdata) {
     const object_size = fromUnits(userdata['object_size']) || Number(userdata['object_size'] * 0.000_000_001);
     const object_count = Number(userdata['object_count']);
@@ -53,46 +77,12 @@ function renderCostTable(costmodel, userdata) {
         "ingress": write_ops * object_size,
     };
 
-    const table = document.createElement("table");
-    const thead = document.createElement("thead");
-    table.appendChild(thead);
-    for (const header of titles) {
-        var th = document.createElement("th");
-        th.appendChild(document.createTextNode(header));
-        thead.appendChild(th);
-    }
-    var th = document.createElement("th");
-    th.appendChild(document.createTextNode("Total"));
-    thead.appendChild(th);
-    const tbody = document.createElement("tbody");
-    table.appendChild(tbody);
-
-    for (const [vendor, data] of Object.entries(costmodel)) {
-        const tr = document.createElement("tr");
-
-        const vendor_td = document.createElement("td");
-        vendor_td.appendChild(document.createTextNode(vendor));
-        tbody.appendChild(vendor_td);
-
-        var costTotal = 0.0;
-        for (const column of columns) {
-            const td = document.createElement("td");
-            var [prefix, suffix] = units[column];
-            const cost = computeCost(data[column], model[column]);
-            td.appendChild(document.createTextNode(prefix + cost.toPrecision(2).toString() + suffix));
-            tbody.append(td);
-            costTotal += cost;
-        }
-        const td_total = document.createElement("td");
-        td_total.appendChild(document.createTextNode("$" + costTotal.toPrecision(2).toString()));
-        tbody.append(td_total);
-
-        tbody.appendChild(tr);
-    }
-
-    const parent = document.createElement("div");
-    parent.appendChild(table);
-    return parent.innerHTML;
+    return ejs.render(template_costTable, {
+      titles: titles,
+      units: units,
+      costmodel: costmodel,
+      model: model,
+    });
 }
 
 function computeCost(costs, value) {
@@ -157,8 +147,6 @@ as a general file host, and thus the most penalizing egress rules from each
 service are applied.
 
 ++++
-<div id="costmodel" style="text-align: center"></div>
-
 <script type="text/javascript">
 
 const columns = ["storage", "reads", "egress", "writes", "ingress"];
@@ -257,73 +245,66 @@ const cost_data = {
         {"price": 0},
     ],
   },
-  "Wasabi": {
-    "storage": [{"price": 0.0068}],
+  "OVHcloud (standard)": {
+    "storage": [{"price": 0.008}],
     "reads": [{"price": 0}],
-    "egress": [{"price": 0}],
+    "egress": [{"price": 0.011}],
     "writes": [{"price": 0}],
     "ingress": [{"price": 0}],
   }
 };
 
+const template_costmodel = `
+<table>
+  <thead>
+  <% titles.forEach( title => { %>
+    <th><%= title %></th>
+  <% }); %>
+  </thead>
+  <tbody>
+  <% Object.entries(costmodel).forEach( ([vendor, data]) => { %>
+    <tr>
+      <td><%= vendor %></td>
+      <% columns.forEach( column => {
+        var [prefix, suffix] = units[column]; %>
+      <td><%- renderSubTable(data[column], prefix, suffix) %></td>
+      <% }); %>
+    </tr>
+  <% }); %>
+  </tbody>
+</table>
+`;
 function renderCostModel(costmodel) {
-    const costmodel_div = document.getElementById("costmodel");
-    const table = document.createElement("table");
-    const thead = document.createElement("thead");
-    table.appendChild(thead);
-    for (const header of titles) {
-        var th = document.createElement("th");
-        th.appendChild(document.createTextNode(header));
-        thead.appendChild(th);
-    }
-    const tbody = document.createElement("tbody");
-    table.appendChild(tbody);
-
-    for (const [vendor, data] of Object.entries(costmodel)) {
-        const tr = document.createElement("tr");
-
-        const vendor_td = document.createElement("td");
-        vendor_td.appendChild(document.createTextNode(vendor));
-        tbody.appendChild(vendor_td);
-
-        for (const column of columns) {
-            const td = document.createElement("td");
-            var [prefix, suffix] = units[column];
-            td.appendChild(renderSubTable(data[column], prefix, suffix));
-            tbody.append(td);
-        }
-
-        tbody.appendChild(tr);
-    }
-
-    costmodel_div.innerHTML='';
-    costmodel_div.appendChild(table);
+    return ejs.render(template_costmodel, {
+        costmodel: costmodel,
+    });
 }
 
+const template_subtable = `
+<table>
+  <tbody>
+  <% rows.forEach( row => { %>
+    <tr>
+    <% if ("until" in row || "after" in row) {
+              word = "until" in row ? "Until " : "After "; %>
+      <td><%= word + (row["until"] || row["after"]) %></td>
+    <% } %>
+      <td><%= prefix + row["price"] + suffix %></td>
+    </tr>
+  <% }); %>
+  </tbody>
+</table>
+`;
 function renderSubTable(rows, prefix, suffix) {
-    const table = document.createElement("table");
-    const tbody = document.createElement("tbody");
-    for (const row of rows) {
-        const tr = document.createElement("tr");
-        
-        if ("until" in row || "after" in row) {
-            word = "until" in row ? "Until " : "After ";
-            const predicate = document.createElement("td");
-            predicate.appendChild(document.createTextNode(word + (row["until"] || row["after"])));
-            tr.appendChild(predicate);
-        }
-        const price = document.createElement("td");
-        price.appendChild(document.createTextNode(prefix + row["price"] + suffix));
-        tr.appendChild(price);
-        tbody.appendChild(tr);
-    }
-    table.appendChild(tbody);
-    return table;
+    return ejs.render(template_subtable, {
+        rows: rows,
+        prefix: prefix,
+        suffix: suffix,
+    });
 }
-
-renderCostModel(cost_data);
-
 </script>
+
+<div x-data x-html="renderCostModel(cost_data)" style="text-align: center"></div>
 ++++
 
 Azure Blob Storage's egress calculations are complicated.
@@ -335,3 +316,5 @@ not well distributed, so this is likely generous to B2.
 Backblaze B2 offers free egress up until 3x of your stored data, except I didn't
 have a way to represent that in my data model, so that free egress isn't
 accounted for.
+
+OVHcloud charges in 1GB increments, which isn't reflected in the cost computation.
