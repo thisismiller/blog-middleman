@@ -1,0 +1,337 @@
+= S3-Compatible Cloud Storage Costs
+:revdate: 2023-12-13
+:page-features: alpine
+
+S3 is a convenient way to host larger static artifacts for a website, but which S3-compatible service is the cheapest for that usecase?
+
+== Pricing
+
+++++
+
+<div x-data="{ object_size: '10MB', object_count: '100', read_ops: '10K', write_ops: '100' }">
+<div style="padding-bottom: 1.5em; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+<div>
+<label for="object_size">Average Object Size</label>
+<input type="text" x-model.debounce="object_size"/>
+</div>
+<div>
+<label for="object_count">Number of Objects</label>
+<input type="text" x-model.debounce="object_count"/>
+</div>
+<div>
+<label for="read_ops">Number of Read Operations</label>
+<input type="text" x-model.debounce="read_ops"/>
+</div>
+<div>
+<label for="write_ops">Number of Write Operations</label>
+<input type="text" x-model.debounce="write_ops"/>
+</div>
+</div>
+<div>
+
+</div>
+
+<div x-html="renderCostTable(cost_data, $data)">
+</div>
+
+</div>
+
+TL;DR, the R2 free tier is sufficiently generous to cover most personal blog uses.
+
+<script>
+
+function renderCostTable(costmodel, userdata) {
+    const object_size = fromUnits(userdata['object_size']) || Number(userdata['object_size'] * 0.000_000_001);
+    const object_count = Number(userdata['object_count']);
+    const read_ops = fromUnits(userdata['read_ops']) || Number(userdata['read_ops'] * 0.000_001);
+    const write_ops = fromUnits(userdata['write_ops']) || Number(userdata['write_ops'] * 0.000_001);
+    model = {
+        "storage": object_size * object_count,
+        "reads": read_ops,
+        "egress": read_ops * object_size,
+        "writes": write_ops,
+        "ingress": write_ops * object_size,
+    };
+
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    table.appendChild(thead);
+    for (const header of titles) {
+        var th = document.createElement("th");
+        th.appendChild(document.createTextNode(header));
+        thead.appendChild(th);
+    }
+    var th = document.createElement("th");
+    th.appendChild(document.createTextNode("Total"));
+    thead.appendChild(th);
+    const tbody = document.createElement("tbody");
+    table.appendChild(tbody);
+
+    for (const [vendor, data] of Object.entries(costmodel)) {
+        const tr = document.createElement("tr");
+
+        const vendor_td = document.createElement("td");
+        vendor_td.appendChild(document.createTextNode(vendor));
+        tbody.appendChild(vendor_td);
+
+        var costTotal = 0.0;
+        for (const column of columns) {
+            const td = document.createElement("td");
+            var [prefix, suffix] = units[column];
+            const cost = computeCost(data[column], model[column]);
+            td.appendChild(document.createTextNode(prefix + cost.toPrecision(2).toString() + suffix));
+            tbody.append(td);
+            costTotal += cost;
+        }
+        const td_total = document.createElement("td");
+        td_total.appendChild(document.createTextNode("$" + costTotal.toPrecision(2).toString()));
+        tbody.append(td_total);
+
+        tbody.appendChild(tr);
+    }
+
+    const parent = document.createElement("div");
+    parent.appendChild(table);
+    return parent.innerHTML;
+}
+
+function computeCost(costs, value) {
+    var index = 0;
+    var cost = 0;
+    var base = 0;
+    var limit = NaN;
+
+    for (const row of costs) {
+        if ('after' in row || !('until' in row)) {
+            return cost + row['price'] * value;
+        }
+
+        limit = fromUnits(row['until']);
+        if (value + base < limit) {
+            return cost + row['price'] * value;
+        }
+
+        value -= limit - base;
+        cost += (limit - base) * row['price'];
+        base = limit;
+    }
+    return NaN;
+}
+
+function fromUnits(str) {
+    var suffix = str.slice(-2);
+    if (suffix == "KB") {
+        return Number(str.slice(0, -2)) * 0.000_001;
+    }
+    if (suffix == "MB") {
+        return Number(str.slice(0, -2)) * 0.001;
+    }
+    if (suffix == "GB") {
+        return Number(str.slice(0, -2)) * 1;
+    }
+    if (suffix == "TB") {
+        return Number(str.slice(0, -2)) * 1_000;
+    }
+    suffix = str.slice(-1);
+    if (suffix == "M") {
+        return Number(str.slice(0, -1));
+    }
+    if (suffix == "K") {
+        return Number(str.slice(0, -1)) * 0.001;
+    }
+    if (suffix == "B") {
+        return Number(str.slice(0, -1)) * 0.000_000_001;
+    }
+    return NaN;
+}
+
+</script>
+
+++++
+
+== Cost Model
+
+Note that the major difference here, versus most other price comparisons, is
+that egress is to the general internet due to using the S3-compatible offering
+as a general file host, and thus the most penalizing egress rules from each
+service are applied.
+
+++++
+<div id="costmodel" style="text-align: center"></div>
+
+<script type="text/javascript">
+
+const columns = ["storage", "reads", "egress", "writes", "ingress"];
+const titles = ["Vendor", "$/GB/mo", "$/1M Reads", "$/GB Read", "$/1M Writes", "$/GB Written"];
+const units = {"storage": ["$", ""], "reads": ["$", ""], "egress": ["$", ""], "writes": ["$", ""], "ingress": ["$", ""]};
+
+const cost_data = {
+"AWS S3": {
+    "storage": [
+        {"until": "50TB", "price": 0.023},
+        {"until": "500TB", "price": 0.022},
+        {"after": "500TB", "price": 0.021},
+    ],
+    "reads": [
+        {"price": 0.4},
+    ],
+    "egress": [
+        {"until": "100GB", "price": 0},
+        {"until": "10.1TB", "price": 0.09},
+        {"until": "50.1TB", "price": 0.085},
+        {"until": "150.1TB", "price": 0.07},
+        {"after": "150.1TB", "price": 0.05},
+    ],
+    "writes": [
+        {"price": 5.00},
+    ],
+    "ingress": [
+        {"price": 0},
+    ],
+  },
+  "Google Cloud Storage": {
+    "storage": [{"price": 0.020}],
+    "reads": [{"price": 0.4}],
+    "egress": [
+        {"until": "1TB", "price": 0.12},
+        {"until": "10TB", "price": 0.11},
+        {"after": "10TB", "price": 0.08},
+    ],
+    "writes": [{"price": 5}],
+    "ingress": [{"price": 0}],
+  },
+  "Azure Blob Storage (Hot)": {
+    "storage": [
+        {"until": "50TB", "price": 0.018},
+        {"until": "500TB", "price": 0.0173},
+        {"after": "500TB", "price": 0.0166},
+    ],
+    "reads": [{"price": 0.5}],
+    "egress": [
+        {"until": "100GB", "price": 0},
+        {"until": "10.1TB", "price": 0.087},
+        {"until": "50.1TB", "price": 0.083},
+        {"until": "150.1TB", "price": 0.07},
+        {"until": "500.1TB", "price": 0.05},
+        {"after": "500.1TB", "price": 0.05},
+    ],
+    "writes": [{"price": 6.5}],
+    "ingress": [{"price": 0}],
+  },
+  "Cloudflare R2": {
+    "storage": [
+        {"until": "10GB", "price": 0},
+        {"after": "10GB", "price": 0.015},
+    ],
+    "reads": [
+        {"until": "10M", "price": 0},
+        {"after": "10M", "price": 0.36}
+    ],
+    "egress": [
+        {"price": 0},
+    ],
+    "writes": [
+        {"until": "1M", "price": 0},
+        {"after": "1M", "price": 4.50}
+    ],
+    "ingress": [
+        {"price": 0},
+    ],
+  },
+  "Backblaze B2": {
+    "storage": [
+        {"until": "10GB", "price": 0},
+        {"after": "10GB", "price": 0.006},
+    ],
+    "reads": [
+        {"until": "0.75M", "price": 0},
+        {"after": "0.75M", "price": 0.4},
+    ],
+    "egress": [
+        {"price": 0.01},
+    ],
+    "writes": [
+        {"price": 0},
+    ],
+    "ingress": [
+        {"price": 0},
+    ],
+  },
+  "Wasabi": {
+    "storage": [{"price": 0.0068}],
+    "reads": [{"price": 0}],
+    "egress": [{"price": 0}],
+    "writes": [{"price": 0}],
+    "ingress": [{"price": 0}],
+  }
+};
+
+function renderCostModel(costmodel) {
+    const costmodel_div = document.getElementById("costmodel");
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    table.appendChild(thead);
+    for (const header of titles) {
+        var th = document.createElement("th");
+        th.appendChild(document.createTextNode(header));
+        thead.appendChild(th);
+    }
+    const tbody = document.createElement("tbody");
+    table.appendChild(tbody);
+
+    for (const [vendor, data] of Object.entries(costmodel)) {
+        const tr = document.createElement("tr");
+
+        const vendor_td = document.createElement("td");
+        vendor_td.appendChild(document.createTextNode(vendor));
+        tbody.appendChild(vendor_td);
+
+        for (const column of columns) {
+            const td = document.createElement("td");
+            var [prefix, suffix] = units[column];
+            td.appendChild(renderSubTable(data[column], prefix, suffix));
+            tbody.append(td);
+        }
+
+        tbody.appendChild(tr);
+    }
+
+    costmodel_div.innerHTML='';
+    costmodel_div.appendChild(table);
+}
+
+function renderSubTable(rows, prefix, suffix) {
+    const table = document.createElement("table");
+    const tbody = document.createElement("tbody");
+    for (const row of rows) {
+        const tr = document.createElement("tr");
+        
+        if ("until" in row || "after" in row) {
+            word = "until" in row ? "Until " : "After ";
+            const predicate = document.createElement("td");
+            predicate.appendChild(document.createTextNode(word + (row["until"] || row["after"])));
+            tr.appendChild(predicate);
+        }
+        const price = document.createElement("td");
+        price.appendChild(document.createTextNode(prefix + row["price"] + suffix));
+        tr.appendChild(price);
+        tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    return table;
+}
+
+renderCostModel(cost_data);
+
+</script>
+++++
+
+Azure Blob Storage's egress calculations are complicated.
+
+Backblaze B2 offers 2,500 API calls free per day.  Assuming reads are well
+distributed this is 750,000 free reads per month.  However, reads are probably
+not well distributed, so this is likely generous to B2.
+
+Backblaze B2 offers free egress up until 3x of your stored data, except I didn't
+have a way to represent that in my data model, so that free egress isn't
+accounted for.

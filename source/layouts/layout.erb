@@ -42,20 +42,22 @@ up_title = if current_page.data.category != 'blog' then category_name[current_pa
     <%= stylesheet_link_tag (current_page.data.style || "post") %>
     <%= stylesheet_link_tag "code-highlighting" %>
     <% if page_features.include? 'font-awesome' %>
-    <%= stylesheet_link_tag "font-awesome.css" %>
+      <%= stylesheet_link_tag "font-awesome.css" %>
     <% end %>
     <%= javascript_include_tag "aside-positioning" %>
+    <% if page_features.include? 'plot' or page_features.include? 'dataframe' %>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" referrerpolicy="no-referrer"></script>
+      <%= javascript_include_tag "plotutil" %>
+      <script src="https://unpkg.com/dataframe-js@1.4.4/dist/dataframe.min.js" referrerpolicy="no-referrer"></script>
+    <% end %>
     <% if page_features.include? 'plot' %>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" referrerpolicy="no-referrer"></script>
-    <%= javascript_include_tag "plotutil" %>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/g2plot/2.4.19/g2plot.min.js" integrity="sha512-OpJr+ltzajlHXM+/bLHL6CL6kCzAnh0b7yCHnWb1nF1bofEWBnwAA3VtnVXEqROr4Tmet7pSfoEVtK9w88L6Hg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://unpkg.com/dataframe-js@1.4.4/dist/dataframe.min.js" referrerpolicy="no-referrer"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/g2plot/2.4.19/g2plot.min.js" integrity="sha512-OpJr+ltzajlHXM+/bLHL6CL6kCzAnh0b7yCHnWb1nF1bofEWBnwAA3VtnVXEqROr4Tmet7pSfoEVtK9w88L6Hg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <% end %>
     <% if page_features.include? 'python_wasm' %>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"></script>
+      <script src="https://cdn.jsdelivr.net/pyodide/v0.21.3/full/pyodide.js"></script>
     <% end %>
     <% if page_features.include? 'alpine' %>
-    <script src="https://unpkg.com/alpinejs" defer></script>
+      <script src="https://unpkg.com/alpinejs" defer></script>
     <% end %>
   </head>
   <body>
