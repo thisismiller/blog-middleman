@@ -148,6 +148,11 @@ that egress is to the general internet due to using the S3-compatible offering
 as a general file host, and thus the most penalizing egress rules from each
 service are applied.
 
+Any service which has a fixed minimum (DigitalOcean, Linode, etc.) was removed
+from consideration as the fixed cost would dwarf any other per-request or per-GB
+storage cost for small data volumes (and my whole motivation for this post was
+to investigate small data volumes).
+
 ++++
 <script type="text/javascript">
 
