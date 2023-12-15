@@ -59,9 +59,9 @@ const template_costTable = `
         var [prefix, suffix] = units[column];
         const cost = computeCost(data[column], model[column]);
         costTotal += cost; %>
-        <td><%= prefix + cost.toPrecision(2).toString() + suffix %></td>
+        <td><%= prefix + Number(cost.toPrecision(2)).toString() + suffix %></td>
         <% }); %>
-        <td><%= "$" + costTotal.toPrecision(2).toString() %></tr>
+        <td><%= "$" + Number(costTotal.toPrecision(2)).toString() %></tr>
     </tr>
     <% }); %>
     </tbody>
