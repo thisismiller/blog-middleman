@@ -11,8 +11,8 @@ A reminder that macOS does not respect the usual ways of making data durable on 
 As per the {uri-fsync-manpage}[fsync manpage] on darwin:
 
 > Note that while fsync() will flush all data from the host to the drive
-> (i.e. the "permanent storage device"), the drive itself may not physi-cally physically
-> cally write the data to the platters for quite some time and it may be
+> (i.e. the "permanent storage device"), the drive itself may not physically
+> write the data to the platters for quite some time and it may be
 > written in an out-of-order sequence.
 > 
 > Specifically, if the drive loses power or the OS crashes, the application
