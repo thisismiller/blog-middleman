@@ -4,7 +4,7 @@
 
 S3 is a convenient way to host larger static artifacts for a website, but which S3-compatible service is the cheapest for that usecase?
 
-== Pricing
+== Monthly Cost Calculator
 
 ++++
 
@@ -39,6 +39,8 @@ S3 is a convenient way to host larger static artifacts for a website, but which 
 TL;DR, the R2 free tier is sufficiently generous to cover most personal blog uses.
 
 <script>
+
+const costtitles = ["Vendor", "Storage", "Read Ops", "Read Egress", "Write Ops", "Write Ingress"];
 
 const template_costTable = `
 <table>
@@ -78,7 +80,7 @@ function renderCostTable(costmodel, userdata) {
     };
 
     return ejs.render(template_costTable, {
-      titles: titles,
+      titles: costtitles,
       units: units,
       costmodel: costmodel,
       model: model,
