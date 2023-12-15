@@ -79,7 +79,7 @@ up_title = if current_page.data.category != 'blog' then category_name[current_pa
       metadata = []
       if current_page.data.hidden then metadata.append("Hidden") end
       if current_page.data.date then metadata.append("Posted " + current_page.data.date.strftime("%Y-%m-%d")) end
-      if current_page.data.last_updated then metadata.append("Updated " + current_page.data.last_updated.strftime("%Y-%m-%d")) end
+      if current_page.data.updated then metadata.append("Updated " + current_page.data.updated.strftime("%Y-%m-%d")) end
       metadata = metadata.join '<br>'
       if metadata then '<p>' + metadata + '</p>' end
       %>
