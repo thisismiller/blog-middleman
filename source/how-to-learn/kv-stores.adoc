@@ -3,6 +3,8 @@
 :page-hidden: true
 :page-order: 4
 
-== References
+== B-Trees
+
+== LSM Trees
 
 [1] C. Luo and M. J. Carey, “LSM-based Storage Techniques: A Survey,” Dec. 2018, [Online]. Available: http://arxiv.org/abs/1812.07527

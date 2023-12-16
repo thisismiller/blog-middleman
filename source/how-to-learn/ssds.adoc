@@ -6,6 +6,7 @@
 But if you want to go far down this rabbit hole, it's totally possible.  E.g. http://www.vldb.org/pvldb/vol13/p519-kakaraparthy.pdf
 
 T10 is the SAS group.  T13 is the SATA group.
+NVMe is generally PCIe, but SATA Express exists for NVMe or SATA.
 
 Data Integrity
 https://lwn.net/Articles/548294/  oracle uses DIX/DIF

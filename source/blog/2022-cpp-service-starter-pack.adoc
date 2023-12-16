@@ -39,6 +39,11 @@ Which will get turned into two things: `1970-00-00 00:00:00 INFO User admin has 
 - github:Morgan-Stanley/binlog[]
 - github:odygrd/quill[]
 
+- github:sashamakarenko/slog[]
+- github:kevincox/sog[]
+- github:takeshibaconsuzuki/structlog[]
+- github:oktal/logpp[]
+
 == Flags
 
 Requirements:
