@@ -12,6 +12,17 @@
   </head>
   <body>
     <main>
+    <% if !current_page.data.nofooter %>
+      <div class="nav_header">
+        <span class="prev"></span>
+        <span class="up"><%= link_to "↑ " + "Blog" + " ↑", config.http_prefix %></span>
+        <span class="next"></span>
+      </div>
+      <br />
+      <hr width="100%"/>
+      <br />
+    <% end %>
+
     <h1><%= current_page.data.title || category || "Index" %></h1>
 
     <%= yield %>
