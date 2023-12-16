@@ -64,8 +64,8 @@ up_title = if current_page.data.category != 'blog' then category_name[current_pa
     <% end %>
   </head>
   <body>
-    <% if !current_page.data.nofooter %>
     <main>
+    <% if !current_page.data.nofooter %>
     <div class="nav_header">
       <span class="prev"><%= if page_prev then link_to ("↤ " + page_prev.title), page_prev end %></span>
       <span class="up"><%= link_to "↑ " + up_title + " ↑", page_up %></span>
@@ -96,8 +96,8 @@ up_title = if current_page.data.category != 'blog' then category_name[current_pa
       </div>
       <% category_heading = if current_page.data.category != 'blog' then category_name[current_page.data.category] + ": " else "" end .titleize %>
       <p><a href="https://discu.eu/?q=<%= "https://transactional.blog" + current_page.url %>&submit_title=<%= category_heading + current_page.data.title %>">See discussion of this page on Reddit, HN, and lobsters.</a></p>
-      </main>
     <% end %>
+    </main>
     <% if environment == :transactionalblog %>
     <script data-goatcounter="https://transactionalblog.goatcounter.com/count"
         async src="//gc.zgo.at/count.js"></script>
