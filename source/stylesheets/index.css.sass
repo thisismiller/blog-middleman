@@ -81,9 +81,15 @@ div.nav_footer
   .next
     text-align: right
 
-@media (max-width: 810px)
+@media (max-width: 500px)
   body
-    grid-template-columns: [left] 100px 10px [content] 1fr [end] 0px
+    grid-template-columns: [left] [content] [end] 1fr
+
+  .article
+    .date
+      justify-self: start
+    .attributes
+      justify-self: start
 
   aside
     grid-column: content
