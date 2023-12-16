@@ -46,6 +46,12 @@ pre, code, textarea
 textarea
   resize: both
 
+aside, .aside
+  font-size: 80%
+
+  p
+    color: var(--b-txt-dark)
+
 svg
   overflow: visible
 
@@ -213,14 +219,11 @@ div.quoteblock
   li
     padding-top: 5px
 
-@media (max-width: 910px)
+@media (max-width: 700px)
   body
     --sidemargin-padding: 0px
     --sidemargin-width: 0px
     width: auto
-
-  aside, .aside
-    font-size: 80%
 
   .aside:before
     display: block
@@ -232,8 +235,29 @@ div.quoteblock
     content: ' '
     clear: right
 
-  aside p, .aside p
-    color: var(--b-txt-dark)
+  .postmeta
+    float: right
+    margin-left: 2em
+
+@media (min-width: 700px) and (max-width: 910px)
+  body
+    --body-width: 700px
+    justify-content: left
+
+  main
+    position: relative
+    width: var(--body-width)
+    margin: auto
+
+  .aside:before
+    display: block
+    content: ' '
+    clear: right
+
+  .aside:after
+    display: block
+    content: ' '
+    clear: right
 
   .postmeta
     float: right
@@ -258,10 +282,3 @@ div.quoteblock
     position: absolute
     left: calc(var(--body-width) + var(--sidemargin-padding))
     width: var(--sidemargin-width)
-
-  aside, .aside
-    font-size: 80%
-
-  aside p, .aside p
-    color: var(--b-txt-dark)
-
