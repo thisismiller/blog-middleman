@@ -22,7 +22,7 @@ layout: none
     <category term="<%= post.data.category %>" />
     <updated><%= date.iso8601 %></updated>
     <% if post.summary %>
-    <summary><%= post.summary %></summary>
+    <summary><%= post.summary.strip.delete("\n") %></summary>
     <% end %>
   </entry>
 <% end %>

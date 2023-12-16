@@ -10,7 +10,7 @@ end
 require 'asciidoctor-diagram'
 require_relative 'asciidoc_extensions/inline_macros'
 require_relative 'asciidoc_extensions/ophistory_diagram'
-activate :asciidoc, safe: :unsafe, template_dirs: 'asciidoc_templates', attributes: ['source-highlighter=rouge', 'toc-title=']
+activate :asciidoc, backend: 'xhtml5', safe: :unsafe, template_dirs: 'asciidoc_templates', attributes: ['source-highlighter=rouge', 'toc-title=']
 set :skip_build_clean, proc {|f| f.start_with? 'build/images/'}
 
 class ImageDirPerAsciidoc < Middleman::Extension
@@ -41,9 +41,9 @@ activate :blog do |blog|
   blog.default_extension = ".adoc"
   blog.summary_length = nil
   blog.summary_generator = Proc.new { |article, rendered, length, ellipsis|
-    f = Nokogiri::HTML(rendered).at('body > #preamble')
+    f = Nokogiri::HTML5(rendered).at('body > #preamble')
     if f
-      f.children.map(&:to_html).join()
+      f.children.map(&:to_xml).join()
     else
       ''
       #Nokogiri::HTML(rendered).at('body > p')&.to_html
