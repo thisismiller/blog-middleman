@@ -9,7 +9,8 @@ S3 is a convenient way to host larger static artifacts for a website, but which 
 
 ++++
 
-<div x-data="{ object_size: '10MB', object_count: '100', read_ops: '10K', write_ops: '100' }">
+<div x-data="{ object_size: '10MB', object_count: '100', read_ops: '10K', write_ops: '100' }"
+     x-init="initFromQueryParams($data)">
 <div style="padding-bottom: 1.5em; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
 <div>
 <label for="object_size">Average Object Size</label>
@@ -57,6 +58,24 @@ large bill from R2.
 
 ++++
 <script>
+
+function initFromQueryParams(model) {
+  const params = new Proxy(new URLSearchParams(window.location.search), {
+    get: (searchParams, prop) => searchParams.get(prop),
+  });
+  if (params.object_size) {
+    model.object_size = params.object_size;
+  }
+  if (params.object_count) {
+    model.object_count = params.object_count;
+  }
+  if (params.read_ops) {
+    model.read_ops = params.read_ops;
+  }
+  if (params.write_ops) {
+    model.write_ops = params.write_ops;
+  }
+}
 
 const costtitles = ["Vendor", "Storage", "Read Ops", "Read Egress", "Write Ops", "Write Ingress"];
 
