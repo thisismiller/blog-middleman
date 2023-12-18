@@ -1,5 +1,6 @@
 = S3-Compatible Cloud Storage Costs
 :revdate: 2023-12-13
+:page-updated: 2023-12-18
 :page-features: alpine, ejs
 
 S3 is a convenient way to host larger static artifacts for a website, but which S3-compatible service is the cheapest for that usecase?
@@ -35,9 +36,26 @@ S3 is a convenient way to host larger static artifacts for a website, but which 
 </div>
 
 </div>
+++++
 
-TL;DR, the R2 free tier is sufficiently generous to cover most personal blog uses.
+R2 comes out significantly ahead in nearly every practical usage due to its
+overly generous free tier and zero egress cost.  However, Cloudflare lacks a way
+to set a spending limit, so it would be possible for an abusive user to
+repeatedly fetch the same content and leave you with an unexpected bill.  The
+free tier is very generous, and the 10 million requests per month is 3.85 QPS
+for a month.  But in the context of abuse, that could turn into real money quite
+quickly.
 
+As a result, for this specific usecase of offering files and static assets for
+a personal blog, I've opted to go with Backblaze B2, which does offer a way to
+set a spending limit.  Egress fees are not charged within the "Bandwidth
+Alliance", which includes Cloudflare's CDN.  So if you put Cloudflare in front
+of serving content from your B2 bucket, then there's no egress charges, and
+without the egress charge, B2 seems acceptable in terms of price.  I'm happy to
+accept any ~$1 charge from Backblaze as an "insurance fee" against an unexpected
+large bill from R2.
+
+++++
 <script>
 
 const costtitles = ["Vendor", "Storage", "Read Ops", "Read Egress", "Write Ops", "Write Ingress"];
@@ -74,7 +92,7 @@ function renderCostTable(costmodel, userdata) {
     model = {
         "storage": object_size * object_count,
         "reads": read_ops,
-        "egress": read_ops * object_size,
+        "egress": read_ops * 1000000 * object_size,
         "writes": write_ops,
         "ingress": write_ops * object_size,
     };
@@ -258,7 +276,17 @@ const cost_data = {
     "egress": [{"price": 0.011}],
     "writes": [{"price": 0}],
     "ingress": [{"price": 0}],
-  }
+  },
+  "Scaleway Object Storage": {
+    "storage": [{"price": 0.016}],
+    "reads": [{"price": 0}],
+    "egress": [
+        {"until": "75GB", "price": 0},
+        {"after": "75GB", "price": 0.011}
+    ],
+    "writes": [{"price": 0}],
+    "ingress": [{"price": 0}],
+  },
 };
 
 const template_costmodel = `
@@ -325,3 +353,5 @@ have a way to represent that in my data model, so that free egress isn't
 accounted for.
 
 OVHcloud charges in 1GB increments, which isn't reflected in the cost computation.
+
+Scaleway charges in euro, and thus I used the current 1 EUR = ~1.09 USD conversion.
