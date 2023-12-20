@@ -8,7 +8,6 @@ S3 is a convenient way to host larger static artifacts for a website, but which 
 == Monthly Cost Calculator
 
 ++++
-
 <div x-data="{ object_size: '10MB', object_count: '100', read_ops: '10K', write_ops: '100' }"
      x-init="initFromQueryParams($data)">
 <div style="padding-bottom: 1.5em; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -175,7 +174,6 @@ function fromUnits(str) {
 }
 
 </script>
-
 ++++
 
 == Cost Model
