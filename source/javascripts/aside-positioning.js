@@ -24,7 +24,6 @@ function positionAsideElements(mq) {
             const previousAside = asideElements[index - 1];
             const previousAsideBottom = previousAside.getBoundingClientRect().bottom;
             const myTop = aside.getBoundingClientRect().top;
-            console.log("myTop=" + myTop + " prevBot=" + previousAsideBottom)
             if (previousAsideBottom > myTop) {
                 aside.style.top = previousAsideBottom - baseline + 'px';
             }
@@ -35,4 +34,4 @@ function positionAsideElements(mq) {
 document.addEventListener("DOMContentLoaded", function() {
   positionAsideElements({matches: true});
 });
-window.matchMedia("(min-width: 910px)").addEventListener('change', positionAsideElements)
+window.matchMedia("(min-width: 920px)").addEventListener('change', positionAsideElements)

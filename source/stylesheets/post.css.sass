@@ -239,7 +239,7 @@ div.quoteblock
     float: right
     margin-left: 2em
 
-@media (min-width: 700px) and (max-width: 910px)
+@media (min-width: 700px) and (max-width: 920px)
   body
     --body-width: 700px
     justify-content: left
@@ -263,7 +263,7 @@ div.quoteblock
     float: right
     margin-left: 2em
 
-@media (min-width: 910px)
+@media (min-width: 920px)
   body
     --body-width: 700px
     --sidemargin-padding: 10px
@@ -282,3 +282,7 @@ div.quoteblock
     position: absolute
     left: calc(var(--body-width) + var(--sidemargin-padding))
     width: var(--sidemargin-width)
+
+  span.aside
+    // A hack for getClientBoundingRect not considering margin
+    padding-bottom: 1.5em
