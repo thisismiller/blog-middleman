@@ -1,6 +1,6 @@
 = S3-Compatible Cloud Storage Costs
 :revdate: 2023-12-13
-:page-updated: 2023-12-18
+:page-updated: 2024-01-07
 :page-features: alpine, ejs
 
 S3 is a convenient way to host larger static artifacts for a website, but which S3-compatible service is the cheapest for that usecase?
@@ -246,6 +246,16 @@ const cost_data = {
         {"after": "500.1TB", "price": 0.05},
     ],
     "writes": [{"price": 6.5}],
+    "ingress": [{"price": 0}],
+  },
+  "Oracle Object Storage": {
+    "storage": [{"price": 0.0255}],
+    "reads": [{"price": 0.34}],
+    "egress": [
+        {"until": "10TB", "price": 0},
+        {"after": "10TB", "price": 0.0085}
+    ],
+    "writes": [{"price": 0.34}],
     "ingress": [{"price": 0}],
   },
   "Cloudflare R2": {
