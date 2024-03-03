@@ -39,11 +39,7 @@ implementation, a futures or coroutine library, or stateful objects and callback
 decreasing order of user friendlyness).  Even the proposed
 {uri-switchto}[switchTo/FUTEX_SWAP] for directly scheduling native threads can
 work.  It does not matter what language or library is used; all that matters is
-that you, the developer, are in control of which work runs in what order.[^1]
-[.aside]#[^1] This notably removes Go as an option, as there's no facility offered to a
-Go developer to control how or when goroutines are scheduled for execution.  One
-would need to run a custom patched version of the Go runtime, similar to what
-CockroachDB does for {uri-crdb-go-runtime}[fine-grained CPU attribution].#
+that you, the developer, are in control of which work runs in what order.
 
 [source,cpp]
 ----

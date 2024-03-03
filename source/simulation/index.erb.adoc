@@ -21,6 +21,11 @@ Simulation testing is simulating a distributed cluster of machines and processes
 ## Mockable External Services: Networking
 ## Live External Services: Disks
 ## Processes and Machines
+## Other Examples
+- Go: https://github.com/resonatehq/resonate/tree/268c588e302f13187309e4b37636d19595d42fa1/internal/kernel
+- Zig: Tigerbeetle
+- C++ish: FDB
+- Java: Cassandra D-Tests
 
 # Failure Modeling
 ## Networking
