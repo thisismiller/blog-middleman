@@ -3,7 +3,6 @@
 :page-order: 3
 :page-tag: reading
 :toc: preamble
-:page-hidden: true
 
 Our next goal is to be able to walk the tree, and print out the values stored in the B-Tree.
 
