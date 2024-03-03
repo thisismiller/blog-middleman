@@ -13,7 +13,7 @@ nofooter: true
 <% blog.articles
   .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden}
   .select {|a| !(a.path.end_with? 'index.html')}
-  .sort_by {|a| a.date}
+  .sort_by {|a| [a.date, (a.data&.order&.to_i || 0)]} # no nil allowed in sort
   .reverse
   .each do |article| %>
   <div class="article">

@@ -12,7 +12,7 @@ layout: none
 <% blog.articles
   .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden}
   .map {|a| [ a.data.date.is_a?(String) ? Time.zone.parse(a.data.date) : a.data.date, a]}
-  .sort_by {|date, a| date}
+  .sort_by {|date, a| [date, (a.data&.order&.to_i || 0)]} # no nil allowed in sort
   .reverse
   .each do |date, post| %>
   <entry>
