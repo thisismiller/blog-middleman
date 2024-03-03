@@ -1,0 +1,24 @@
+= Introduction
+:revdate: 2024-02-24
+:page-order: 1
+:page-tag: intro
+:page-hidden: true
+:toc: preamble
+
+Welcome to the B-Tree tutorial.
+
+== What is this?
+
+This is a tutorial series which will walk you step by step through building a BerkeleyDB-compatible BTree library.  We start by being able to read the data out of an existing database, then start working on adding increasingly more complex mutation support, and finish by adding support for a WAL and recovery.
+
+Most importantly, this tutorial series provides _structure_.  The process of reimplementing or breaking apart any BTree library should be the exact same.  If you wish to instead rebuild a different BTree library (InnoDB, Sqlite, Postgres, LMDB), following the same structure and accomplishing the same tasks in the same order will hopefully guide you to success.
+
+== What do I need to know?
+
+== Why BerkeleyDB?
+
+BerkeleyDB is ubiquitous.  It's installed on every platform, or easily installable, and there's bindings available to it in nearly every language.
+
+BerkeleyDB is simple.  It's not a highly optimized BTree implementation.  It isn't tuned or written with any one data model in mind.  The BTree is a plain key-value store.
+
+BerkeleyDB is realistic.  It's been used in real-world applications.  Features were added to it according to the needs of real software.  It influenced the design and of other embedded databases.  What one learns from BerkeleyDB will be applicable to other, more complicated BTrees.

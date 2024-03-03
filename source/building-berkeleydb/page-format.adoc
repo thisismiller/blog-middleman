@@ -1,0 +1,192 @@
+= Page Format
+:revdate: 2024-02-24
+:page-order: 2
+:page-tag: reading
+:toc: preamble
+
+Our first goal is to be able to read a page, and be able to print information contained in the header for that page.
+
+== Meta Page
+
+The first page in any BerkeleyDB database is a metadata page.
+
+[bytefield]
+----
+(defn important [name width]
+  (draw-box (text name :bold) {:span width}))
+(defn field [name width]
+  (draw-box (text name {:font-weight "light"}) {:span width}))
+(draw-column-headers)
+(important "LSN" 8)
+(field "pgno" 4)
+(important "magic"  4)
+(field "version" 4)
+(field "pagesize" 4)
+(field "ec" 1)
+(field "ty" 1)
+(field "mf" 1)
+(field " " 1)
+(important "free" 4)
+(important "last_pgno" 4)
+(field "nparts" 4)
+(field "key_count" 4)
+(field "record_count" 4)
+(field "flags" 4)
+(field "uid" 12)
+(field "uid" 8)
+(field " " 4)
+(field "minkey" 4)
+(field "re_len" 4)
+(field "re_pad" 4)
+(important "root" 4)
+(draw-gap)
+(field "crypto_magic" 4)
+(field " " 12)
+(field "iv" 16)
+(field "chksum" 16)
+(field "chksum" 4)
+----
+
+The gap resumes on byte 460.
+The entire structure is 512 bytes in size.
+The rest of the 4096 byte page is unspecified and unused.
+All fields are in host byte order, so almost certainly little endian.
+
+The bolded fields are the only ones which we'll actually be using.  Those are:
+
+12-15: Magic Number:: It should always be `0x53162`.  This magic number is also unique to the Btree data type, so requiring this magic number makes sure that the file is not one of the alternative access methods supported by BerkeleyDB (hash, record, or queue).
+28-31: Free list page number:: This will be used once mutations are implemented on the btree.
+32-35: Last page number:: The page number of the last page in the database.  This can be used instead of relying on `size_of_database_file / 4KB - 1`.
+88-91: Root:: The page number of the root of the btree.  Reads of the btree should start from this page.
+
+=== B-Tree Page
+
+A B-Tree inner node and a B-Tree leaf share the same header.  They differ by what the entries in the page represent.
+
+[bytefield]
+----
+(defn field [name width]
+  (draw-box (text name) {:span width}))
+(draw-column-headers)
+(field "lsn" 8)
+(field "pgno" 4)
+(field "prev_pgno" 4)
+(field "next_pgno" 4)
+(field "entries" 2)
+(field "hf_offset" 2)
+(field "level" 1)
+(field "type" 1)
+----
+
+The rest of the page is used to hold the page entries, which is the subject of our next step.
+For now, we only focus on the page headers.  No bolding of fields this time, as all of them will be used.
+
+00-07: Log sequence number:: The sequence number of this page, which will become important once updates and WAL support is implemented.
+08-11: Current page number:: The page number of this page.
+12-15: Previous page number:: The leaf page containing lexicographically lower data. `0` if none, or if internal node.
+16-19: Next page number:: The leaf page containing lexicographically higher data.  `0` if none, or if internal node.
+20-21: Number of items on the page:: The number of entries contained on this page.
+22-23: High free byte page offset:: The space between this byte offset and the header is empty.
+24: Btree tree level:: A leaf node is `1`, and it counts up, so any value greater than 1 also means an internal page.
+25: Page type:: The DB meta page is type `9`.  An internal node is type `3`.  A leaf node is type `5`.  All other values are invalid.
+
+== Task
+
+Write a program which reads a `.bdb` file, and for each page, prints the page header for that page.
+
+One can create a contrived BerkeleyDB database by installing and using the `db_load` command.  This comes from the package `libdb-utils` in Fedora, `db-utils` in Ubuntu.
+
+I have a tiny program to generate some test data:
+
+[source, python]
+.gendata.py
+----
+#!/usr/bin/env python3
+for length in range(1, 20):
+    print(chr(ord('a') + length % 26) * (20 * length))
+    print(chr(ord('a') + length % 26) * (20 * length))
+----
+
+And then a database can be created with:
+
+[source, bash]
+----
+./gendata.py | db_load -T -t btree testdata.bdb
+----
+
+Example output from the above database:
+
+.Example output
+[%collapsible]
+====
+----
+Page 0 {                            
+        lsn = 4294967296;
+        pgno = 0;
+        magic = 0x53162;
+        version = 9;
+        pagesize = 4096;
+        encrypt_alg = 0;
+        type = 9;
+        metaflags = 0;
+        free = 0;
+        last_pgno = 4;
+        nparts = 0;
+        key_count = 0;
+        record_count = 0;
+        flags = 0;
+        uid = e629660002030100dcc3cccf57dd080000000000;
+        minkey = 2;
+        re_len = 0;
+        re_pad = 0x20;
+        root = 1;
+        crypto_magic = 0;
+        iv = 00000000000000000000000000000000;
+        chksum = 0000000000000000000000000000000000000000
+}
+
+Page 1 {
+        lsn = 4294967296;
+        pgno = 1;
+        prev_pgno = 0;
+        next_pgno = 0;
+        entries = 3;
+        hf_offset = 3796;
+        level = 2;
+        type = 3
+}
+
+Page 2 {
+        lsn = 4294967296;
+        pgno = 2;
+        prev_pgno = 0;
+        next_pgno = 3;
+        entries = 24;
+        hf_offset = 880;
+        level = 1;
+        type = 5
+}
+
+Page 3 {
+        lsn = 4294967296;
+        pgno = 3;
+        prev_pgno = 2;
+        next_pgno = 4;
+        entries = 10;
+        hf_offset = 1056;
+        level = 1;
+        type = 5
+}
+
+Page 4 {
+        lsn = 4294967296;
+        pgno = 4;
+        prev_pgno = 3;
+        next_pgno = 0;
+        entries = 4;
+        hf_offset = 2600;
+        level = 1;
+        type = 5
+}
+----
+====

@@ -1,0 +1,31 @@
+= Building BerkeleyDB
+:page-date: 2024-01-06
+:page-layout: index
+
+A B-Tree tutorial series starting with implementing a BerkeleyDB clone.
+
+[.display-hidden]
+== Introduction
+
+++++
+<%= partial("partials/index_section", :locals => {:tagged => 'intro'}) %>
+++++
+
+== Reading
+
+++++
+<%= partial("partials/index_section", :locals => {:tagged => 'reading'}) %>
+++++
+
+== Writing
+
+
+== Recovery
+
+////
+== Optimizations
+
+++++
+<%= partial("partials/index_section", :locals => {}) %>
+++++
+////
