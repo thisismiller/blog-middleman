@@ -116,7 +116,7 @@ Note that this entry is always a fixed 12 bytes.
 
 == Task
 
-Extend your code to read the same `testdata.bdb`, and starting from the root page, walk the pages pointed to by `InternalEntry`s in order, and read out each key and value.  The logic should look roughly like:
+Extend your code to read the same `testdata.bdb`, and starting from the root page, walk the pages pointed to by ``InternalEntry``s in order, and read out each key and value.  The logic should look roughly like:
 
 [source]
 ----
