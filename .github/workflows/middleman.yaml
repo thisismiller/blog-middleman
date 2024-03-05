@@ -20,7 +20,7 @@ jobs:
         cache: 'npm'
 
     - name: Install Node Packages
-      run: npm install
+      run: npm install -g
 
     - name: Setup Ruby
       uses: ruby/setup-ruby@v1
