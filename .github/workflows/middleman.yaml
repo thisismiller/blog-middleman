@@ -22,26 +22,8 @@ jobs:
     - name: Install Node Packages
       run: npm install --location=global
 
-    - name: List User Node Packages
-      run: ls $(npm bin --location=user) || true
-
-    - name: List Project Node Packages
-      run: ls $(npm bin --location=project) || true
-
-    - name: List Global Node Packages
-      run: ls $(npm bin --location=global) || true
-
     - name: Install Bytefield
       run: npm install --location=global bytefield-svg
-
-    - name: List Global Node Packages Again
-      run: ls $(npm bin --location=global)
-
-    - name: Add Node Packages to PATH
-      run: npm bin --location=global >> $GITHUB_PATH
-
-    - name: Print PATH
-      run: echo $PATH
 
     - name: Setup Ruby
       uses: ruby/setup-ruby@v1
