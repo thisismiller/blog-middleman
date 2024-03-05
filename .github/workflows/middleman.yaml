@@ -24,11 +24,6 @@ jobs:
         npm install
         echo $(npm bin) >> $GITHUB_PATH
 
-    - name: Sanity check
-      run: |
-        echo $(npm bin)
-        ls $(npm bin) || true
-
     - name: Setup Ruby
       uses: ruby/setup-ruby@v1
       with:
