@@ -22,11 +22,20 @@ jobs:
     - name: Install Node Packages
       run: npm install --location=global
 
-    - name: List Node Packages
-      run: ls $(npm bin -g)
+    - name: List Local Node Packages
+      run: ls $(npm bin --location=local)
+
+    - name: List Global Node Packages
+      run: ls $(npm bin --location=global)
+
+    - name: Install Bytefield
+      run: npm install --location=global bytefield-svg
+
+    - name: List Global Node Packages Again
+      run: ls $(npm bin --location=global)
 
     - name: Add Node Packages to PATH
-      run: npm bin -g >> $GITHUB_PATH
+      run: npm bin --location=global >> $GITHUB_PATH
 
     - name: Print PATH
       run: echo $PATH
