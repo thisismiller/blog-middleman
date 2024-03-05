@@ -19,6 +19,9 @@ jobs:
         node-version: 17
         cache: 'npm'
 
+    - name: Clear npm cache
+      run: npm cache clear --force
+
     - name: Install Node Packages
       run: npm install --location=global
 
