@@ -22,8 +22,14 @@ jobs:
     - name: Install Node Packages
       run: npm install --location=global
 
+    - name: List Node Packages
+      run: ls $(npm bin -g)
+
     - name: Add Node Packages to PATH
       run: npm bin -g >> $GITHUB_PATH
+
+    - name: Print PATH
+      run: echo $PATH
 
     - name: Setup Ruby
       uses: ruby/setup-ruby@v1
