@@ -22,11 +22,14 @@ jobs:
     - name: Install Node Packages
       run: npm install --location=global
 
-    - name: List Local Node Packages
-      run: ls $(npm bin --location=local)
+    - name: List User Node Packages
+      run: ls $(npm bin --location=user) || true
+
+    - name: List Project Node Packages
+      run: ls $(npm bin --location=project) || true
 
     - name: List Global Node Packages
-      run: ls $(npm bin --location=global)
+      run: ls $(npm bin --location=global) || true
 
     - name: Install Bytefield
       run: npm install --location=global bytefield-svg
