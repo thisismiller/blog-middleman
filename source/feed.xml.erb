@@ -5,11 +5,10 @@ layout: none
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
   <title>Transactional</title>
-  <link href="<%= config[:domain] %>" />
-  <lastBuildDate><%= Time.now.utc.iso8601 %></lastBuildDate>
+  <description>databases</description>
+  <link><%= config[:domain] %></link>
+  <lastBuildDate><%= Time.now.utc.rfc2822 %></lastBuildDate>
   <language>en-us</language>
-  <id><%= config[:domain] %></id>
-  <icon>/favicon.ico</icon>
   <atom:link href="<%= join_paths(config[:domain], "feed.xml") %>" rel="self" type="application/rss+xml"/>
 
 <% blog.articles
@@ -21,10 +20,10 @@ layout: none
   .each do |date, post| %>
   <item>
     <title><%= post.title %></title>
-    <link href="<%= join_paths(config[:domain], config[:http_prefix], post.url) %>" />
-    <id><%= post.url %></id>
-    <category term="<%= post.data.category %>" />
-    <published><%= date.iso8601 %></published>
+    <link><%= join_paths(config[:domain], config[:http_prefix], post.url) %></link>
+    <guid><%= post.url %></guid>
+    <category><%= post.data.category %></category>
+    <pubDate><%= date.rfc2822 %></pubDate>
     <% if post.summary %>
     <% summary_text = html_to_text(post.summary.strip.delete("\n")) %>
     <% if summary_text %>
