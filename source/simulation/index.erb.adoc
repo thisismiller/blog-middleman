@@ -1,5 +1,5 @@
 = Simulation Testing
-:page-date: 2022-02-22
+:revdate: 2022-02-22
 :page-layout: index
 
 Simulation testing is simulating a distributed cluster of machines and processes entirely within a single local process.  This permits comprehensive testing of complex systems through fuzzed fault injection.  Single process execution allows for simulation to be deterministic, thus greatly improving debuggablity of complex failures.

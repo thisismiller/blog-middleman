@@ -1,5 +1,5 @@
 = RDMA
-:page-date: 2023-05-06
+:revdate: 2023-05-06
 :page-layout: index
 
 Examples, benchmarking, and troubleshooting from experiments with using RDMA.

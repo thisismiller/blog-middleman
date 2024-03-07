@@ -1,5 +1,5 @@
 = Productionizing Databases
-:page-date: 2022-07-25
+:revdate: 2022-07-25
 :page-layout: index
 :page-hidden: true
 

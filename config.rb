@@ -64,25 +64,32 @@ ignore /.*\.swp/
 # Helpers
 # Methods defined in the helpers block are available in templates
 # https://middlemanapp.com/basics/helper-methods/
+helpers do
+  def join_paths(*paths)
+    paths.map { |path| path.delete_prefix('/').chomp('/') }.reject(&:empty?).join('/')
+  end
 
-# helpers do
-#   def some_helper
-#     'Helping'
-#   end
-# end
+  def html_to_text(html)
+    Nokogiri::HTML(html).text
+  end
+end
 
 # Build-specific configuration
 # https://middlemanapp.com/advanced/configuration/#environment-specific-settings
 
 require 'terser'
 
+config[:domain] = "http://localhost:4567"
+
 configure :ghpages do
+  config[:domain] = "https://thisismiller.github.io"
   set :http_prefix, "/blog-middleman"
   activate :minify_css
   activate :minify_javascript, compressor: Terser.new
 end
 
 configure :transactionalblog do
+  config[:domain] = "https://transactional.blog"
   set :http_prefix, "/"
   activate :minify_css
   activate :minify_javascript, compressor: Terser.new

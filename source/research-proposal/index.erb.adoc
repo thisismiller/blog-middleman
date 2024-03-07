@@ -1,5 +1,5 @@
 = Research Proposal
-:page-date: 2023-04-25
+:revdate: 2023-04-25
 :page-layout: index
 :page-hidden: true
 

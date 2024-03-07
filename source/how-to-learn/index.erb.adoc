@@ -1,5 +1,5 @@
 = How to Learn
-:page-date: 2023-05-07
+:revdate: 2023-05-07
 :page-layout: index
 
 Suggested reading material for various topics.

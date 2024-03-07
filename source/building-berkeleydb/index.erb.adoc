@@ -1,5 +1,5 @@
 = Building BerkeleyDB
-:page-date: 2024-01-06
+:revdate: 2024-01-06
 :page-layout: index
 
 A B-Tree tutorial series starting with implementing a BerkeleyDB clone.

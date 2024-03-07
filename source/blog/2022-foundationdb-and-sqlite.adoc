@@ -1,6 +1,5 @@
 = FoundationDB and SQLite
 :revdate: 2022-09-12
-:page-date: 2022-09-12
 :icons: font
 :page-features: font-awesome
 :page-hidden: true
