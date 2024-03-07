@@ -9,7 +9,7 @@ layout: none
   <link><%= config[:domain] %></link>
   <lastBuildDate><%= Time.now.utc.rfc2822 %></lastBuildDate>
   <language>en-us</language>
-  <atom:link href="<%= join_paths(config[:domain], "feed.xml") %>" rel="self" type="application/rss+xml"/>
+  <atom:link href="<%= join_paths(config[:domain], config[:http_prefix], "feed.xml") %>" rel="self" type="application/rss+xml"/>
 
 <% blog.articles
   .select {|a| !(@app.environment? :transactionalblog) || !a.data.hidden}
@@ -21,7 +21,7 @@ layout: none
   <item>
     <title><%= post.title %></title>
     <link><%= join_paths(config[:domain], config[:http_prefix], post.url) %></link>
-    <guid><%= post.url %></guid>
+    <guid><%= join_paths(config[:domain], config[:http_prefix], post.url) %></guid>
     <category><%= post.data.category %></category>
     <pubDate><%= date.rfc2822 %></pubDate>
     <% if post.summary %>
