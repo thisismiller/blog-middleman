@@ -1,12 +1,14 @@
 ---
 layout: none
 ---
-<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<feed version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
   <title>Transactional</title>
   <link href="<%= config[:domain] %>" />
-  <updated><%= Time.now.utc.iso8601 %></updated>
-  <id>https://transactional.blog/</id>
+  <lastBuildDate><%= Time.now.utc.iso8601 %></lastBuildDate>
+  <language>en-us</language>
+  <id><%= config[:domain] %></id>
   <icon>/favicon.ico</icon>
   <atom:link href="<%= join_paths(config[:domain], "feed.xml") %>" rel="self" type="application/rss+xml"/>
 
@@ -17,19 +19,19 @@ layout: none
   .sort_by {|date, a| [date, (a.data&.order&.to_i || 0)]} # no nil allowed in sort
   .reverse
   .each do |date, post| %>
-  <entry>
+  <item>
     <title><%= post.title %></title>
     <link href="<%= join_paths(config[:domain], config[:http_prefix], post.url) %>" />
     <id><%= post.url %></id>
-    <author></author>
     <category term="<%= post.data.category %>" />
     <published><%= date.iso8601 %></published>
     <% if post.summary %>
     <% summary_text = html_to_text(post.summary.strip.delete("\n")) %>
     <% if summary_text %>
-    <summary><%= summary_text %></summary>
+    <description><%= summary_text %></description>
     <% end %>
     <% end %>
-  </entry>
+  </item>
 <% end %>
+</channel>
 </feed>
