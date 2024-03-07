@@ -9,6 +9,7 @@
     <title><%= current_page.data.title || category || "Index" %></title>
     <%= stylesheet_link_tag "bamboo/main.css" %>
     <%= stylesheet_link_tag (current_page.data.style || "index") %>
+    <link rel="alternate" type="application/rss+xml" title="RSS Feed" href="/feed.xml" />
   </head>
   <body>
     <main>
