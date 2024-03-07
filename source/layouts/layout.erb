@@ -77,7 +77,13 @@ up_title = if current_page.data.category != 'blog' then category_name[current_pa
     </div>
     <hr width="100%"/>
     <% end %>
+    <div>
+    <% if current_page.data.nofooter %>
+    <a href="/feed.xml"><img src="images/rss.svg" style="float: right" /></a>
+    <% end %>
     <h1><%= if current_page.data.no_title then "" else current_page.data.title end %></h1>
+    </div>
+    <% if !current_page.data.nofooter %>
     <aside class="postmeta">
       <%=
       metadata = []
@@ -88,6 +94,7 @@ up_title = if current_page.data.category != 'blog' then category_name[current_pa
       if metadata then '<p>' + metadata + '</p>' end
       %>
     </aside>
+    <% end %>
     <%= if current_page.data.disclaimer then "<aside><p>" + current_page.data.disclaimer + "</p></aside>" end %>
     <%= yield %>
     <!-- TODO: consider https://utteranc.es/ for in-page comments. -->
