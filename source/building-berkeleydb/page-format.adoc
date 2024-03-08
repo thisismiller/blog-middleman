@@ -10,6 +10,8 @@ Our first goal is to be able to read a page, and be able to print information co
 
 The first page in any BerkeleyDB database is a metadata page.
 
+[.white-bg]
+====
 [bytefield]
 ----
 (defn important [name width]
@@ -46,6 +48,7 @@ The first page in any BerkeleyDB database is a metadata page.
 (field "chksum" 16)
 (field "chksum" 4)
 ----
+====
 
 The gap resumes on byte 460.
 The entire structure is 512 bytes in size.
@@ -63,6 +66,8 @@ The bolded fields are the only ones which we'll actually be using.  Those are:
 
 A B-Tree inner node and a B-Tree leaf share the same header.  They differ by what the entries in the page represent.
 
+[.white-bg]
+====
 [bytefield]
 ----
 (defn field [name width]
@@ -77,6 +82,7 @@ A B-Tree inner node and a B-Tree leaf share the same header.  They differ by wha
 (field "level" 1)
 (field "type" 1)
 ----
+====
 
 The rest of the page is used to hold the page entries, which is the subject of our next step.
 For now, we only focus on the page headers.  No bolding of fields this time, as all of them will be used.

@@ -8,6 +8,10 @@
     --b-txt-dark: #C0C0C0
     --b-link: #cc8188
 
+
+\:root
+	--b-bg-light: #ffffff
+
 $text-font: 'Open Sans', sans-serif
 $code-font: 'Inconsolata', monospace
 
@@ -54,6 +58,11 @@ aside, .aside
 
 svg
   overflow: visible
+  stroke: var(--b-txt-dark)
+  fill: var(--b-txt-dark)
+
+.white-bg
+  background-color: var(--b-bg-light)
 
 div.nav_footer, div.nav_header
   grid-column: 1 / 3

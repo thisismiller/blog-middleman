@@ -12,6 +12,8 @@ In our page format, the header is followed by an array of offsets.  The array is
 
 Note that this means that `offsets[0]` will be greater than `offsets[1]`, as the first key written goes to the very end of the page.
 
+[.white-bg]
+====
 [bytefield]
 ----
 (defn field [name width]
@@ -33,6 +35,7 @@ Note that this means that `offsets[0]` will be greater than `offsets[1]`, as the
 (field "entry1" 16)
 (field "entry0" 16)
 ----
+====
 
 And `i` in the above after the gap is `hf_offset`.
 
@@ -46,6 +49,8 @@ The `type` field for all three is in the same position for all entries.  KeyData
 
 === KeyDataEntry
 
+[.white-bg]
+====
 [bytefield]
 ----
 (defn field [name width]
@@ -56,6 +61,7 @@ The `type` field for all three is in the same position for all entries.  KeyData
 (draw-gap "data")
 (draw-bottom)
 ----
+====
 
 00-01:: The length of the variable sized data field.
 02:: The type code for this entry.  Is `1` for KeyDataEntry.
@@ -65,6 +71,8 @@ KeyDataEntry is used for both keys and values.  The two are only distinguished i
 
 === OverflowEntry
 
+[.white-bg]
+====
 [bytefield]
 ----
 (defn field [name width]
@@ -80,6 +88,7 @@ KeyDataEntry is used for both keys and values.  The two are only distinguished i
 (field "pgno" 4)
 (field "tlen" 4)
 ----
+====
 
 00-01:: Padding, unused.
 02:: Page type AND DELETE FLAG.
@@ -91,6 +100,8 @@ Note that this entry is always a fixed 12 bytes.
 
 === InternalEntry
 
+[.white-bg]
+====
 [bytefield]
 ----
 (defn field [name width]
@@ -106,6 +117,7 @@ Note that this entry is always a fixed 12 bytes.
 (draw-gap "data" {:min-label-columns 2})
 (draw-bottom)
 ----
+====
 
 00-01:: Key/data item length.
 02:: Page type and delete flag.
