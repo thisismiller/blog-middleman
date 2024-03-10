@@ -9,6 +9,9 @@ A distributed database is formed of a number of individual machines.  The aggreg
 
 == Introduction
 
+:uri-apache-pegasus: https://pegasus.apache.org/
+:uri-hibari: https://github.com/hibari/hibari
+
 ////
 Introduction
 - Three algorithms:
@@ -20,7 +23,7 @@ Introduction
     - Industry: Megastore, PaxosStore
   - Not consensus
     - Academia: Vertical Paxos II, CRAQ, PacificA, Hermes
-    - Industry: Kafka ISR, FoundationDB, Apache Pegasus, there used to be chain replication databases but they all died out
+    - Industry: Kafka ISR, FoundationDB, Apache Pegasus, there used to be chain replication databases but they all died out (hyperdex, hibari)
 ////
 
 When deploying a distributed database, one forms a cluster of machines stem:[X], each of which can individually deliver a read throughput stem:[R_X], write throughput stem:[W_X], and has available storage capacity stem:[S_X].  The resulting overall database system stem:[Y] can be benchmarked to determine its read throughput stem:[R_Y], write throughput stem:[W_Y] and storage capacity stem:[S_Y].  Throughout this post, we'll be examining what each class of replication algorithms can deliver in terms of the maximum values for read throughput efficiency stem:[R_Y / R_X], write throughput efficiency stem:[W_Y / W_X], and storage capacity efficiency stem:[S_Y / S_X].  As a counterpoint to resource efficiency, we'll also be looking at availability: given the loss of a random machine, what's the chance that a user will observe a transient service disruption?
@@ -35,42 +38,61 @@ The best known leaderless replication algorithms are the Paxos family of protoco
 [.aside]#[1]: This post accidentally turned into an interesting adventure into finding the correct citation for a number of common concepts.  This is the first, and by no means the last, citation where the source paper tangentially introduced a now fundamental concept.#
 ) or <<ABD>> are also in this category.  Leaderless replication is used in industry by systems like <<Megastore>> and <<PaxosStore>>, and <<Cassandra>>.
 
-Despite being 66% more costly to operate, failure masking algorithms are the overwhelming choice in industry, with the most common choice offering the worst resource efficiency tradeoff.
+Lastly, there is the lesser known class of failure detection-based replication algorithms.  These are algorithms in which there is a set of nodes in a replication group, and on detected failure, these algorithms execute a _view change_ to reconfigure to a new set of nodes with no failures.  There's a broad examination of such distributed protocols stemming from <<VirtualSynchrony>>, and this perspective of view changes on detected failures is even present in consensus protocols such as <<ViewstampedReplication>>. However, our dividing line for this analysis is that the failure-detection algorithms use stem:[f+1] nodes to tolerate stem:[f] failures.  If stem:[2f+1] nodes are required, then the algorithm is likely better covered by one of the two failure-masking classes of algorithms discussed above.  For example, Viewstamped Replication is very much like Raft and Multi-Paxos.
+
+As a consequence of only having stem:[f+1] nodes for stem:[f] failures, there is a consistent theme in that all algorithms examined are _not consensus_.  This also means that they cannot solve consensus problems, such as deciding which replicas are responsible for a shard of data, or which node is the primary.  They all rely on an external consensus service to help with those issues.  Think of this as a control plane / data plane split: there's one instance of a consensus service in the control plane orchestrating the small amount of metadata deciding which nodes are in which replication groups responsible for which shards of data, and the horizontally scaleable data plane replicates each shard of data within its assigned group.
+
+There's two shapes of algorithms in this class of failure detection replication protocols: those that look like some form of primary-backup replication where a leader fans out requests to one or more backup nodes, or chain replication-like algorithms where each node is responsible for forwarding each piece of replicated data to the next node in the chain.  In academia, evolving Paxos into a reconfigurable primary-backup replication was examined in <<VerticalPaxosII>>. <<PacificA>> and <<Hermes>> are more recent but different views on reconfigurable primary-backup replication. <<CRAQ>> is the most famous chain replication algorithm, with <<HyperDex>> being a more recently proposed chain-based system.  In industry, <<Kafka>> and <<FoundationDB>>^[2]^[.aside]#[2]: Disclaimer: former affiliation.# use different variants of reconfigurable primary-backup, {uri-apache-pegasus}[Apache Pegasus] uses PacificA.  Nearly all of the chain replication databases in industry have died out, as {uri-hibari}[hibari] was one of the last but appears abandoned now, and HyperDex almost become a startup.
+
+All of this analysis is building to one core, yet obvious point: failure detection's stem:[f+1] is less than failure masking's stem:[2f+1].  Superficially, that's 40% more resources to accomplish the same task (for the common stem:[f=2]).  But how does that compare after we take the algorithm's resource efficiency into account?  Do the benefits of a leadered failure masking protocol like Raft outweigh the detriments, as opposed to leaderless consensus?
 
 ////
  [.aside]#[^1]: Note that majority quorums require read repair to be linearizable, but even so, it's a weaker linearizability than what Paxos or Raft provide.  Majority quorums are only linearizable if failed operations are considered to never complete (thus never time out), whereas Raft is linearizable even with failures.#
-////
+
+Despite being 66% more costly to operate, failure masking algorithms are the overwhelming choice in industry, with the most common choice offering the worst resource efficiency tradeoff.
+
 
 Raft requires stem:[2f+1] nodes to handle stem:[f] failures, whereas Chain Replication requires stem:[f+1] nodes.  Raft is correspondingly 60% more expensive to run for the commonly deployed case of stem:[f=2], and offers worse availability than leaderless consensus.
 
-These correlate to algorithms that require stem:[2f+1] nodes (e.g. Raft and Paxos) to tolerate stem:[f] failures versus those that require stem:[f+1] nodes (e.g. Chain Replication and Kafka ISR), respectively.  The former class of algorithms has seen significantly more industry use, but comes at a significant cost 
+These correlate to algorithms that require stem:[2f+1] nodes (e.g. Raft and Paxos) to tolerate stem:[f] failures versus those that require stem:[f+1] nodes (e.g. Chain Replication and Kafka ISR), respectively.  The former class of algorithms has seen significantly more industry use, but comes at a significant cost.
 
 Ideally, a database hosted across 5 machines would be able to store 5x the data,
 with 5x the read and write throughput, and 5x the fault tolerance.  Chain
 replication and leaderless consensus strike optimal tradeoffs at opposite ends,
 with Raft languishing in the middle.
+////
 
 
 == Raft / Multi-Paxos
 
 :uri-cockroach-follower-reads: https://www.cockroachlabs.com/blog/follower-reads-stale-data/
 :uri-tikv-follower-reads: https://tikv.org/blog/double-system-read-throughput/
+:uri-edb-pgdist-witness: https://www.enterprisedb.com/docs/pgd/latest/node_management/witness_nodes/
+:uri-ydb-erasure-encode: https://ydb.tech/docs/en/concepts/cluster/distributed_storage
+:uri-tigerbeetle-fpaxos: https://docs.tigerbeetle.com/deploy/hardware/
 
-In the simplest Raft implementation, all operations are done by the leader, all nodes store and write the same data.  This leads our resource efficiency works out as:
+In the simplest Raft implementation, all operations sent to the leader, and the leader broadcasts the replication stream to its followers.  All nodes store and write the same data to disk.  At most two of the replicas are permitted to be unavailable.  Across any and all flavors of Raft and Multi-Paxos, the presence of a leader is fundamental, and gives a 1 in 5 chance of transient unavailability if a node fails.
 
+[graphviz]
+----
+digraph G {
+  Client -> Leader   [dir=both];
+  Leader -> Replica1 [dir=both];
+  Leader -> Replica2 [dir=both];
+  Leader -> Replica3 [dir=both, style=dashed];
+  Leader -> Replica4 [dir=both, style=dashed];
+}
+----
 
-There's a few layers of Raft optimizations that change
-
-In Raft, all replicas store the same data, and thus 1/5th of the total storage capacity is available post-replication.  There are no commonly^[2]^ implemented optimizations to improve this, so the storage efficiency will remain at 1/5th.[.aside]#[2]: This phrasing is to intentionally exclude <<WitnessReplicas>>, which do permit removing the majority of the storage from 2/5ths of the replication group, but it has seen little adoption in industry.  The other possible direction for improvement is <<ErasureEncodedRaft>>, but erasure encoding in distributed databases has even less adoption.#
+In Raft, all replicas store the same data, and thus 1/5th of the total storage capacity is available post-replication.    There are a wide set of storage optimizations that have all seen little adoption in industry.  <<WitnessReplicas>> permit removing the majority of the storage from 2/5ths of the replication group, and only {uri-edb-pgdist-witness}[EnterpriseDB Postgres Distributed] and (Cloud) <<Spanner>> implement support for them.  The other possible direction for storage efficiency improvement is <<ErasureEncodedRaft>>.  Erasure encoding is popular in distributed filesystems and blob storage systems, but incredibly rare in distributed databases; I am only aware of {uri-ydb-erasure-encode}[YDB] using it.  Applying <<FlexiblePaxos>> allows one to run with 4 replicas and require 3 to be alive for an election but only replicate across 2.  We're using stem:[f=2] as our comparison baseline, and that's a half way point between stem:[f=1] and stem:[f=2] that doesn't compare equally to anything else, but it is an option which as far as I know only {uri-tigerbeetle-fpaxos}[TigerBeetle] implements.  Thus, as 99% of the Raft implementations one might ever encounter have a storage efficiency of 1/5th, that is the value that will be used for storage efficiency for the rest of the analysis.
 
 Read throughput can be improved by implementing <<LinearizableQuorumReads>> for 2/5ths read throughput, <<PaxosQuorumLeases>> for 3/5ths read throughput, or <<FollowerReads>> for 5/5ths read throughput at the cost of increased latency.  We'll disregard the latency implications, and keep 5/5ths as Raft's read throughput, which is realistic given that it's been implemented in production systems such as {uri-cockroach-follower-reads}[Cockroach] and {uri-tikv-follower-reads}[TiKV].
 
-In classic Raft, the leader broadcasts the proposals to all followers.  This leaves the bottleneck as the leader's outgoing bandwidth, and establishes a maximum of stem:[1/2f], so 1/4th.
-There have been ways discussed to scale the write bandwidth
-<<PullBasedConsensus>>
-<<ScalingReplication>>
+In classic Raft, the leader broadcasts the proposals to all followers.  This leaves the bottleneck as the leader's outgoing bandwidth, and establishes a maximum of stem:[1/2f], so 1/4th.  There have been ways discussed to scale the write bandwidth.  <<PullBasedConsensus>> presents an argument that a fixed topology is not needed, replicas can fetch from other replicas, and thus even a linear chain replicas could work.  <<ScalingReplication>> shows another view that the work of broadcasting to all replicas can be delegated to other replicas.  <<CommutativeRaft>> presents a different approach, in which clients are allowed to directly send to all replicas, and the leader only arbitrates ordering when there's conflicts.  Of these, only pull-based consensus is implemented in industry, but I'm not aware that even MongoDB itself runs in a linear chain configuration.  (It's mostly about saving WAN costs.)  Thus, 1/4th is the value that will be used for write bandwidth efficiency for the rest of the analysis.
 
-A fully optimal Raft implementation could combine <<FollowerReads>> (enabling all replicas to provide full read throughput), <<PullBasedConsensus>> (to set up a chain-organized replication stream), and <<WitnessReplicas>> (to store only 3 full copies of data).
+A theoretical, maximally resource efficient Raft implementation could combine <<FollowerReads>> (enabling all replicas to provide full read throughput), <<PullBasedConsensus>> (to set up a chain-organized replication stream), and <<WitnessReplicas>> (to store only 3 full copies of data).
+
+In summary, our resource efficiency for stem:[f=2] for a minimal Raft implementation, Raft with the set of improvements that one will commonly encounter in industry, and our theoretical and maximally resource efficient Raft is:
 
 [cols="1,1,1,1"]
 |===
@@ -90,11 +112,95 @@ A fully optimal Raft implementation could combine <<FollowerReads>> (enabling al
 | 25%
 | 25%
 | 100%
+| Chance of Unavailability on Failure
+| 20%
+| 20%
+| 20%
 |===
 
-== Paxos
+== Leaderless Paxos / Majority Quorums
 
-== Chain Replication
+[graphviz]
+----
+digraph G {
+  Client -> Replica1 [dir=both];
+  Client -> Replica2 [dir=both];
+  Client -> Replica3 [dir=both];
+  Client -> Replica4 [dir=both, style=dashed];
+  Client -> Replica5 [dir=both, style=dashed];
+}
+----
+
+[cols="1,1,1,1"]
+|===
+|
+| Majority Quorums
+| Paxos
+| Erasure Encoded Quorums
+| Storage Efficiency
+| 20%
+| 20%
+| 33%
+| Read Bandwidth Efficiency
+| 20%
+| 20%
+| 33%
+| Write Bandwidth Efficiency
+| 20%
+| 20%
+| 33%
+| Chance of Unavailability on Failure
+| 0%
+| 0%
+| 0%
+|===
+
+== Reconfigurable Primary-Backup
+
+
+
+[cols="1,1"]
+|===
+| Chain
+| Parallel
+a|
+[graphviz]
+----
+digraph G {
+  Client -> Replica1 -> Replica2 -> Replica3 -> Client;
+}
+----
+a|
+[graphviz]
+----
+digraph G {
+  Client -> Primary   [dir=both];
+  Primary -> Replica1 [dir=both];
+  Primary -> Replica2 [dir=both];
+}
+----
+|===
+
+
+
+[cols="1,1,1"]
+|===
+|
+| CRAQ
+| Hermes
+| Storage Efficiency
+| 33%
+| 33%
+| Read Bandwidth Efficiency
+| 100%
+| 100%
+| Write Bandwidth Efficiency
+| 100%
+| 50%
+| Chance of Unavailability on Failure
+| 100%
+| 100%
+|===
 
 
 ////
@@ -116,11 +222,6 @@ Raft blends the worst aspects of Failure Masking (poor read/write throughput eff
 [bibliography]
 == References
 
-* [[[ReadRepair,Read Repair]]] Dahlia Malkhi and Michael K. Reiter. 1998. Secure and scalable replication in Phalanx. In Proceedings Seventeenth IEEE Symposium on Reliable Distributed Systems (Cat. No.98CB36281), 51-58. DOI: https://doi.org/10.1109/RELDIS.1998.740474
-* [[[ABD]]] Hagit Attiya, Amotz Bar-Noy, and Danny Dolev. 1995. Sharing memory robustly in message-passing systems. J. ACM 42, 1 (January 1995), 124-142. DOI: https://doi.org/10.1145/200836.200869
-* [[[Megastore]]] Jason Baker, Chris Bond, James C. Corbett, JJ Furman, Andrey Khorlin, James Larson, Jean-Michel Leon, Yawei Li, Alexander Lloyd, and Vadim Yushprakh. 2011. Megastore: Providing Scalable, Highly Available Storage for Interactive Services. In Proceedings of the Conference on Innovative Data system Research (CIDR), 223–234. Retrieved from http://www.cidrdb.org/cidr2011/Papers/CIDR11_Paper32.pdf
-* [[[PaxosStore]]] Jianjun Zheng, Qian Lin, Jiatao Xu, Cheng Wei, Chuwei Zeng, Pingan Yang, and Yunfan Zhang. 2017. PaxosStore: high-availability storage made practical in WeChat. Proc. VLDB Endow. 10, 12 (August 2017), 1730-1741. DOI: https://doi.org/10.14778/3137765.3137778
-* [[[Cassandra]]] Avinash Lakshman and Prashant Malik. 2010. Cassandra: a decentralized structured storage system. SIGOPS Oper. Syst. Rev. 44, 2 (April 2010), 35-40. DOI: https://doi.org/10.1145/1773912.1773922
 * [[[Raft]]] Diego Ongaro and John Ousterhout. 2014. In search of an understandable consensus algorithm. In Proceedings of the 2014 USENIX Conference on USENIX Annual Technical Conference (USENIX ATC'14), USENIX Association, Philadelphia, PA, 305-320.
 * [[[MultiPaxos,Multi-Paxos]]] Robbert Van Renesse and Deniz Altinbuken. 2015. Paxos Made Moderately Complex. ACM Comput. Surv. 47, 3 (February 2015). DOI: https://doi.org/10.1145/2673577
 * [[[ZAB]]] Flavio P. Junqueira, Benjamin C. Reed, and Marco Serafini. 2011. Zab: High-performance broadcast for primary-backup systems. In Proceedings of the 2011 IEEE/IFIP 41st International Conference on Dependable Systems&Networks (DSN '11), IEEE Computer Society, USA, 245-256. DOI: https://doi.org/10.1109/DSN.2011.5958223
@@ -129,11 +230,27 @@ Raft blends the worst aspects of Failure Masking (poor read/write throughput eff
 * [[[Zookeeper]]] Patrick Hunt, Mahadev Konar, Flavio P. Junqueira, and Benjamin Reed. 2010. ZooKeeper: Wait-free Coordination for Internet-scale Systems. In 2010 USENIX Annual Technical Conference (USENIX ATC 10), USENIX Association. Retrieved from https://www.usenix.org/conference/usenix-atc-10/zookeeper-wait-free-coordination-internet-scale-systems
 * [[[PaxosMadeLive,Google Chubby]]] Tushar Deepak Chandra, Robert Griesemer, and Joshua Redstone. 2007. Paxos Made Live - An Engineering Perspective (2006 Invited Talk). In Proceedings of the 26th Annual ACM Symposium on Principles of Distributed Computing. Retrieved from http://dx.doi.org/10.1145/1281100.1281103
 * [[[Spanner,Google Spanner]]] James C. Corbett, Jeffrey Dean, Michael Epstein, Andrew Fikes, Christopher Frost, JJ Furman, Sanjay Ghemawat, Andrey Gubarev, Christopher Heiser, Peter Hochschild, Wilson Hsieh, Sebastian Kanthak, Eugene Kogan, Hongyi Li, Alexander Lloyd, Sergey Melnik, David Mwaura, David Nagle, Sean Quinlan, Rajesh Rao, Lindsay Rolig, Dale Woodford, Yasushi Saito, Christopher Taylor, Michal Szymaniak, and Ruth Wang. 2012. Spanner: Google's Globally-Distributed Database. In OSDI.
+* [[[ReadRepair,Read Repair]]] Dahlia Malkhi and Michael K. Reiter. 1998. Secure and scalable replication in Phalanx. In Proceedings Seventeenth IEEE Symposium on Reliable Distributed Systems (Cat. No.98CB36281), 51-58. DOI: https://doi.org/10.1109/RELDIS.1998.740474
+* [[[ABD]]] Hagit Attiya, Amotz Bar-Noy, and Danny Dolev. 1995. Sharing memory robustly in message-passing systems. J. ACM 42, 1 (January 1995), 124-142. DOI: https://doi.org/10.1145/200836.200869
+* [[[Megastore]]] Jason Baker, Chris Bond, James C. Corbett, JJ Furman, Andrey Khorlin, James Larson, Jean-Michel Leon, Yawei Li, Alexander Lloyd, and Vadim Yushprakh. 2011. Megastore: Providing Scalable, Highly Available Storage for Interactive Services. In Proceedings of the Conference on Innovative Data system Research (CIDR), 223-234. Retrieved from http://www.cidrdb.org/cidr2011/Papers/CIDR11_Paper32.pdf
+* [[[PaxosStore]]] Jianjun Zheng, Qian Lin, Jiatao Xu, Cheng Wei, Chuwei Zeng, Pingan Yang, and Yunfan Zhang. 2017. PaxosStore: high-availability storage made practical in WeChat. Proc. VLDB Endow. 10, 12 (August 2017), 1730-1741. DOI: https://doi.org/10.14778/3137765.3137778
+* [[[Cassandra]]] Avinash Lakshman and Prashant Malik. 2010. Cassandra: a decentralized structured storage system. SIGOPS Oper. Syst. Rev. 44, 2 (April 2010), 35-40. DOI: https://doi.org/10.1145/1773912.1773922
+* [[[VirtualSynchrony,Virtual Synchrony]]] K. Birman and T. Joseph. 1987. Exploiting virtual synchrony in distributed systems. In Proceedings of the Eleventh ACM Symposium on Operating Systems Principles (SOSP '87), Association for Computing Machinery, Austin, Texas, USA, 123-138. DOI: https://doi.org/10.1145/41457.37515
+* [[[ViewstampedReplication]]] Barbara Liskov and James Cowling. 2012. Viewstamped Replication Revisited. MIT.
 * [[[WitnessReplicas,Witness Replicas]]] Barbara Liskov, Sanjay Ghemawat, Robert Gruber, Paul Johnson, Liuba Shrira, and Michael Williams. 1991. Replication in the harp file system. In Proceedings of the Thirteenth ACM Symposium on Operating Systems Principles (SOSP '91), Association for Computing Machinery, Pacific Grove, California, USA, 226-238. DOI: https://doi.org/10.1145/121132.121169
 * [[[ErasureEncodedRaft,Erasure Encoded Raft]]] Zizhong Wang, Tongliang Li, Haixia Wang, Airan Shao, Yunren Bai, Shangming Cai, Zihan Xu, and Dongsheng Wang. 2020. CRaft: An Erasure-coding-supported Version of Raft for Reducing Storage Cost and Network Cost. In 18th USENIX Conference on File and Storage Technologies (FAST 20), USENIX Association, Santa Clara, CA, 297-308. Retrieved from https://www.usenix.org/conference/fast20/presentation/wang-zizhong
+* [[[FlexiblePaxos,Flexible Paxos]]] Heidi Howard, Aleksey Charapko, and Richard Mortier. 2021. Fast Flexible Paxos: Relaxing Quorum Intersection for Fast Paxos. In Proceedings of the 22nd International Conference on Distributed Computing and Networking (ICDCN '21), Association for Computing Machinery, Nara, Japan, 186-190. DOI: https://doi.org/10.1145/3427796.3427815
 * [[[LinearizableQuorumReads,Linearizable Quorum Reads]]] Aleksey Charapko, Ailidani Ailijiang, and Murat Demirbas. 2019. Linearizable Quorum Reads in Paxos. In 11th USENIX Workshop on Hot Topics in Storage and File Systems (HotStorage 19), USENIX Association, Renton, WA. Retrieved from https://www.usenix.org/conference/hotstorage19/presentation/charapko
 * [[[PaxosQuorumLeases,Paxos Quorum Leases]]] Iulian Moraru, David G. Andersen, and Michael Kaminsky. 2014. Paxos Quorum Leases: Fast Reads Without Sacrificing Writes. In Proceedings of the ACM Symposium on Cloud Computing (SOCC '14), Association for Computing Machinery, Seattle, WA, USA, 1-13. DOI: https://doi.org/10.1145/2670979.2671001
 * [[[PullBasedConsensus,Pull-Based Consensus in MongoDB]]] Siyuan Zhou and Shuai Mu. 2021. Fault-Tolerant Replication with Pull-Based Consensus in MongoDB. In 18th USENIX Symposium on Networked Systems Design and Implementation (NSDI 21), USENIX Association, 687-703. Retrieved from https://www.usenix.org/conference/nsdi21/presentation/zhou
 * [[[ScalingReplication,Scaling Strongly Consistent Replication]]] Aleksey Charapko, Ailidani Ailijiang, and Murat Demirbas. 2021. PigPaxos: Devouring the Communication Bottlenecks in Distributed Consensus. In Proceedings of the 2021 International Conference on Management of Data (SIGMOD '21), Association for Computing Machinery, Virtual Event, China, 235-247. DOI: https://doi.org/10.1145/3448016.3452834
+* [[[CommutativeRaft,Exploiting Commutativity For Practical Fast Replication]]] Seo Jin Park and John Ousterhout. 2019. Exploiting Commutativity For Practical Fast Replication. In 16th USENIX Symposium on Networked Systems Design and Implementation (NSDI 19), USENIX Association, Boston, MA, 47-64. Retrieved from https://www.usenix.org/conference/nsdi19/presentation/park
+* [[[VertialPaxosII,Vertical Paxos II]]] Leslie Lamport, Dahlia Malkhi, and Lidong Zhou. 2009. Vertical Paxos and Primary-Backup Replication. Microsoft. Retrieved from https://www.microsoft.com/en-us/research/publication/vertical-paxos-and-primary-backup-replication/
+* [[[CRAQ]]] Jeff Terrace and Michael J. Freedman. 2009. Object Storage on CRAQ: High-Throughput Chain Replication for Read-Mostly Workloads. In 2009 USENIX Annual Technical Conference (USENIX ATC 09), USENIX Association, San Diego, CA. Retrieved from https://www.usenix.org/conference/usenix-09/object-storage-craq-high-throughput-chain-replication-read-mostly-workloads
+* [[[PacificA]]] Wei Lin, Mao Yang, Lintao Zhang, and Lidong Zhou. 2008. PacificA: Replication in Log-Based Distributed Storage Systems. Retrieved from https://www.microsoft.com/en-us/research/publication/pacifica-replication-in-log-based-distributed-storage-systems/
+* [[[Hermes]]] Antonios Katsarakis, Vasilis Gavrielatos, M.R. Siavash Katebzadeh, Arpit Joshi, Aleksandar Dragojevic, Boris Grot, and Vijay Nagarajan. 2020. Hermes: A Fast, Fault-Tolerant and Linearizable Replication Protocol. In Proceedings of the Twenty-Fifth International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS '20), Association for Computing Machinery, Lausanne, Switzerland, 201-217. DOI: https://doi.org/10.1145/3373376.3378496
+* [[[HyperDex]]] Robert Escriva, Bernard Wong, and Emin Gün Sirer. 2012. HyperDex: a distributed, searchable key-value store. In Proceedings of the ACM SIGCOMM 2012 Conference on Applications, Technologies, Architectures, and Protocols for Computer Communication (SIGCOMM '12), Association for Computing Machinery, Helsinki, Finland, 25-36. DOI: https://doi.org/10.1145/2342356.2342360
+* [[[Kafka]]] Jay Kreps, Neha Narkhede, Jun Rao, and others. 2011. Kafka: A distributed messaging system for log processing. In Proceedings of the NetDB, Athens, Greece, 1-7.
+* [[[FoundationDB]]] Jingyu Zhou, Meng Xu, Alexander Shraer, Bala Namasivayam, Alex Miller, Evan Tschannen, Steve Atherton, Andrew J. Beamon, Rusty Sears, John Leach, Dave Rosenthal, Xin Dong, Will Wilson, Ben Collins, David Scherer, Alec Grieser, Young Liu, Alvin Moore, Bhaskar Muppana, Xiaoge Su, and Vishesh Yadav. 2021. FoundationDB: A Distributed Unbundled Transactional Key Value Store. In Proceedings of the 2021 International Conference on Management of Data (SIGMOD '21), Association for Computing Machinery, Virtual Event, China, 2653-2666. DOI:https://doi.org/10.1145/3448016.3457559
 
 link:2024-resource-efficency-in-replication.bib[References as BibTex]
